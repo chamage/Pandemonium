@@ -47,29 +47,7 @@ public class GameScreen implements Screen {
         shape.setProjectionMatrix(camera.combined);
 
         shape.begin(ShapeRenderer.ShapeType.Filled);
-
-        int squareSize = 50;
-
-        float camLeft   = camera.position.x - camera.viewportWidth / 2;
-        float camRight  = camera.position.x + camera.viewportWidth / 2;
-        float camBottom = camera.position.y - camera.viewportHeight / 2;
-        float camTop    = camera.position.y + camera.viewportHeight / 2;
-
-        int startX = (int)(camLeft / squareSize) - 1;
-        int endX   = (int)(camRight / squareSize) + 1;
-        int startY = (int)(camBottom / squareSize) - 1;
-        int endY   = (int)(camTop / squareSize) + 1;
-
-        for (int i = startX; i <= endX; i++) {
-            for (int j = startY; j <= endY; j++) {
-                if ((i + j) % 2 == 0) {
-                    shape.setColor(Color.DARK_GRAY);
-                } else {
-                    shape.setColor(Color.LIGHT_GRAY);
-                }
-                shape.rect(i * squareSize, j * squareSize, squareSize, squareSize);
-            }
-        }
+        createBackground();
         shape.end();
 
         player.render(shape, camera);
@@ -102,5 +80,31 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
         shape.dispose();
+    }
+
+    private void createBackground(){
+
+        int squareSize = 50;
+
+        float camLeft   = camera.position.x - camera.viewportWidth / 2;
+        float camRight  = camera.position.x + camera.viewportWidth / 2;
+        float camBottom = camera.position.y - camera.viewportHeight / 2;
+        float camTop    = camera.position.y + camera.viewportHeight / 2;
+
+        int startX = (int)(camLeft / squareSize) - 1;
+        int endX   = (int)(camRight / squareSize) + 1;
+        int startY = (int)(camBottom / squareSize) - 1;
+        int endY   = (int)(camTop / squareSize) + 1;
+
+        for (int i = startX; i <= endX; i++) {
+            for (int j = startY; j <= endY; j++) {
+                if ((i + j) % 2 == 0) {
+                    shape.setColor(Color.DARK_GRAY);
+                } else {
+                    shape.setColor(Color.LIGHT_GRAY);
+                }
+                shape.rect(i * squareSize, j * squareSize, squareSize, squareSize);
+            }
+        }
     }
 }
