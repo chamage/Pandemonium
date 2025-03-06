@@ -5,17 +5,30 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+
+import java.util.Random;
 
 public class GameScreen implements Screen {
 
     final SierraGame game;
-    private Player player;
-    private ShapeRenderer shape;
+    private Random random;
+
     private OrthographicCamera camera;
+    private Player player;
+
+    private ShapeRenderer shape;
+    private SpriteBatch batch;
+
+    private BitmapFont font;
+
 
     public GameScreen(final SierraGame game){
         this.game = game;
+
+        random = new Random();
 
         float viewportWidth = 1280;
         float viewportHeight = 720;
@@ -25,8 +38,14 @@ public class GameScreen implements Screen {
         camera.update();
 
         shape = new ShapeRenderer();
+        batch = new SpriteBatch();
+
+        font = new BitmapFont();
+        font.setUseIntegerPositions(false);
+        font.getData().setScale(viewportHeight / Gdx.graphics.getHeight());
 
         player = new Player(viewportWidth / 2f, viewportHeight / 2f);
+
     }
 
     @Override
@@ -49,6 +68,11 @@ public class GameScreen implements Screen {
         shape.begin(ShapeRenderer.ShapeType.Filled);
         createBackground();
         shape.end();
+
+        batch.begin();
+        String debug = "X: " + player.getPosition().x + " Y: " + player.getPosition().y + " Bullets: " + player.getBulletCount();
+        font.draw(batch, debug, 5, 15);
+        batch.end();
 
         player.render(shape, camera);
 
@@ -80,11 +104,12 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
         shape.dispose();
+        batch.dispose();
     }
 
     private void createBackground(){
 
-        int squareSize = 50;
+        int squareSize = 60;
 
         float camLeft   = camera.position.x - camera.viewportWidth / 2;
         float camRight  = camera.position.x + camera.viewportWidth / 2;
