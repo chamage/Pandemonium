@@ -20,6 +20,7 @@ public class Player {
     }
 
     public void update(float delta, Camera camera){
+
         if (Gdx.input.isKeyPressed(Input.Keys.W)){
             position.y += speed * delta;
         }
