@@ -18,6 +18,7 @@ public class GameScreen implements Screen {
 
     private OrthographicCamera camera;
     private Player player;
+    private EnemyManager enemyManager;
 
     private ShapeRenderer shape;
     private SpriteBatch batch;
@@ -45,6 +46,7 @@ public class GameScreen implements Screen {
         font.getData().setScale(viewportHeight / Gdx.graphics.getHeight());
 
         player = new Player(viewportWidth / 2f, viewportHeight / 2f);
+        enemyManager = new EnemyManager(2f, 10, 170f);
 
     }
 
@@ -56,6 +58,7 @@ public class GameScreen implements Screen {
     @Override
     public void render(float delta) {
         player.update(delta, camera);
+        enemyManager.update(delta, player.getPosition(), player.getBullets());
 
         camera.position.set(player.getPosition().x, player.getPosition().y, 0);
         camera.update();
@@ -70,11 +73,13 @@ public class GameScreen implements Screen {
         shape.end();
 
         batch.begin();
-        String debug = "X: " + player.getPosition().x + " Y: " + player.getPosition().y + " Bullets: " + player.getBulletCount();
+        String debug = "X: " + player.getPosition().x + " Y: " + player.getPosition().y
+            + " Bullets: " + player.getBullets().size() + " Enemies: " + enemyManager.getEnemies().size();
         font.draw(batch, debug, 5, 15);
         batch.end();
 
         player.render(shape, camera);
+        enemyManager.render(shape);
 
     }
 

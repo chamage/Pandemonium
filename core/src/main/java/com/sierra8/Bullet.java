@@ -29,4 +29,8 @@ public class Bullet {
     public void render(ShapeRenderer shape){
         shape.circle(position.x, position.y, 9);
     }
+
+    public Vector2 getPosition() {
+        return  position;
+    }
 }

@@ -77,7 +77,7 @@ public class Player {
         shape.setColor(Color.BLUE);
         shape.triangle(tipX, tipY, leftX, leftY, rightX, rightY);
 
-        shape.setColor(Color.RED);
+        shape.setColor(Color.GREEN);
         for (Bullet bullet : bullets){
             bullet.render(shape);
         }
@@ -90,8 +90,8 @@ public class Player {
         return position;
     }
 
-    public int getBulletCount(){
-        return bullets.size();
+    public ArrayList<Bullet> getBullets(){
+        return bullets;
     }
 
     private void shootBullet(){
