@@ -46,7 +46,7 @@ public class GameScreen implements Screen {
         font.getData().setScale(viewportHeight / Gdx.graphics.getHeight());
 
         player = new Player(viewportWidth / 2f, viewportHeight / 2f);
-        enemyManager = new EnemyManager(2f, 10, 170f);
+        enemyManager = new EnemyManager(1f, 30, 220f);
 
     }
 

@@ -5,6 +5,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
+import java.util.ArrayList;
+
 public class Enemy {
     private Vector2 position;
     private float speed;
@@ -19,7 +21,7 @@ public class Enemy {
         this.dead = false;
     }
 
-    public void update(float delta, Vector2 playerPosition){
+    public void update(float delta, Vector2 playerPosition, ArrayList<Enemy> enemies){
         Vector2 target = new Vector2(playerPosition.x, playerPosition.y);
         Vector2 direction = target.sub(position);
         if (direction.len() != 0) {
@@ -27,6 +29,14 @@ public class Enemy {
         }
         position.add(direction.scl(speed * delta));
         rotation = direction.angleDeg();
+
+        for (Enemy other : enemies) {
+            if (other == this) continue;
+            if (position.dst(other.getPosition()) < 38f) {
+                Vector2 repulsion = new Vector2(position).sub(other.getPosition()).nor();
+                position.add(repulsion.scl(160f * delta));
+            }
+        }
     }
 
     public void render(ShapeRenderer shape){

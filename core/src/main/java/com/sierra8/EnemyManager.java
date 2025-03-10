@@ -23,14 +23,15 @@ public class EnemyManager {
 
     public void update(float delta, Vector2 playerPosition, ArrayList<Bullet> bullets){
         spawnTimer += delta;
+
         if (spawnTimer >= spawnCooldown && enemies.size() < maxEnemies){
-            spawnTimer = 0;
             spawnEnemy(playerPosition);
+            spawnTimer = 0;
         }
 
         for(int i = enemies.size() - 1; i >= 0; i--){
             Enemy enemy = enemies.get(i);
-            enemy.update(delta, new Vector2(playerPosition));
+            enemy.update(delta, new Vector2(playerPosition), enemies);
 
             for (Bullet bullet : bullets){
                 if (enemy.collidesWith(bullet)){
@@ -47,7 +48,7 @@ public class EnemyManager {
     }
 
     private void spawnEnemy(Vector2 playerPosition){
-        float spawnDistance = 500f;
+        float spawnDistance = 650f;
         float angle = MathUtils.random(0, 360);
         float x = playerPosition.x + MathUtils.cosDeg(angle) * spawnDistance;
         float y = playerPosition.y + MathUtils.sinDeg(angle) * spawnDistance;
