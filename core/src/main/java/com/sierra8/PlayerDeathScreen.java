@@ -57,6 +57,7 @@ public class PlayerDeathScreen implements Screen {
         startButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent changeEvent, Actor actor) {
+                stage.dispose();
                 game.setScreen(new GameScreen(game));
             }
         });
