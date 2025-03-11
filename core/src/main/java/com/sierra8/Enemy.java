@@ -2,6 +2,7 @@ package com.sierra8;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
@@ -13,12 +14,14 @@ public class Enemy {
     private float rotation;
     private float size;
     private boolean dead;
+    private Circle hitbox;
 
     public Enemy(float x, float y, float speed){
         this.position = new Vector2(x, y);
         this.speed = speed;
         this.size = 30f;
         this.dead = false;
+        this.hitbox = new Circle(position, size*.6f);
     }
 
     public void update(float delta, Vector2 playerPosition, ArrayList<Enemy> enemies){
@@ -29,6 +32,8 @@ public class Enemy {
         }
         position.add(direction.scl(speed * delta));
         rotation = direction.angleDeg();
+
+        hitbox.setPosition(position);
 
         for (Enemy other : enemies) {
             if (other == this) continue;
@@ -52,11 +57,20 @@ public class Enemy {
         shape.setColor(Color.RED);
         shape.triangle(tipX, tipY, leftX, leftY, rightX, rightY);
         shape.end();
+        /*  Collision borders, debug check
+        shape.begin(ShapeRenderer.ShapeType.Line);
+        shape.setColor(Color.GREEN);  // Set to any visible color
+        shape.circle(hitbox.x, hitbox.y, hitbox.radius);
+        shape.end();
+         */
     }
 
     public boolean collidesWith(Bullet bullet) {
-        float collisionDistance = (size / 2) + 5f;
-        return position.dst(bullet.getPosition()) < collisionDistance;
+        return hitbox.overlaps(bullet.getHitbox());
+    }
+
+    public boolean collidesWith(Player player) {
+        return hitbox.overlaps(player.getHitbox());
     }
 
     public void markDead() {
@@ -69,5 +83,9 @@ public class Enemy {
 
     public Vector2 getPosition() {
         return position;
+    }
+
+    public Circle getHitbox(){
+        return hitbox;
     }
 }

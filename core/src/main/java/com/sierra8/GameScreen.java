@@ -1,6 +1,7 @@
 package com.sierra8;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -15,6 +16,7 @@ public class GameScreen implements Screen {
 
     final SierraGame game;
     private Random random;
+    private boolean paused = false;
 
     private OrthographicCamera camera;
     private Player player;
@@ -57,11 +59,18 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        player.update(delta, camera);
-        enemyManager.update(delta, player.getPosition(), player.getBullets());
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)){
+            if (paused) resume();
+            else pause();
+        }
 
-        camera.position.set(player.getPosition().x, player.getPosition().y, 0);
-        camera.update();
+        if (!paused) {
+            player.update(delta, camera);
+            enemyManager.update(delta, player, player.getBullets());
+
+            camera.position.set(player.getPosition().x, player.getPosition().y, 0);
+            camera.update();
+        }
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -72,14 +81,38 @@ public class GameScreen implements Screen {
         createBackground();
         shape.end();
 
-        batch.begin();
-        String debug = "X: " + player.getPosition().x + " Y: " + player.getPosition().y
-            + " Bullets: " + player.getBullets().size() + " Enemies: " + enemyManager.getEnemies().size();
-        font.draw(batch, debug, 5, 15);
-        batch.end();
-
         player.render(shape, camera);
         enemyManager.render(shape);
+
+        if (paused){
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            shape.begin(ShapeRenderer.ShapeType.Filled);
+            shape.setColor(0, 0, 0, 0.7f);
+            shape.rect(camera.position.x - camera.viewportWidth / 2,
+                camera.position.y - camera.viewportHeight / 2,
+                camera.viewportWidth, camera.viewportHeight);
+            shape.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+        }
+
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+
+        String debug = "X: " + player.getPosition().x + " Y: " + player.getPosition().y
+            + " Bullets: " + player.getBullets().size() + " Enemies: " + enemyManager.getEnemies().size();
+        font.setColor(Color.WHITE);
+        font.draw(batch, debug, camera.position.x - camera.viewportWidth / 2 + 5,
+            camera.position.y + camera.viewportHeight / 2 - 10);
+
+        if (paused) {
+            font.getData().setScale(2f);
+            font.setColor(Color.WHITE);
+            font.draw(batch, "PAUSED", camera.position.x - 50, camera.position.y + 10);
+            font.getData().setScale(1f); // Reset scale
+        }
+
+        batch.end();
 
     }
 
@@ -93,12 +126,12 @@ public class GameScreen implements Screen {
 
     @Override
     public void pause() {
-
+        paused = true;
     }
 
     @Override
     public void resume() {
-
+        paused = false;
     }
 
     @Override

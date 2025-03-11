@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -15,14 +16,17 @@ public class Player {
     private Vector2 position;
     private float speed;
     private float speedSprint;
-    private  float rotation;
+    private float rotation;
+    private float size = 30f;
     private ArrayList<Bullet> bullets;
+    private Circle hitbox;
 
     public Player(float x, float y){
         this.position = new Vector2(x, y);
         this.speed = 300f;
         this.speedSprint = 1.5f;
-        bullets = new ArrayList<>();
+        this.bullets = new ArrayList<>();
+        this.hitbox = new Circle(position, size*.6f);
     }
 
     public void update(float delta, Camera camera){
@@ -50,6 +54,8 @@ public class Player {
         Vector2 direction = new Vector2(mousePos.x - position.x, mousePos.y - position.y);
         rotation = direction.angleDeg();
 
+        hitbox.setPosition(position);
+
         if (Gdx.input.justTouched()){
             shootBullet();
         }
@@ -66,7 +72,6 @@ public class Player {
     public void render(ShapeRenderer shape, Camera camera){
         shape.begin(ShapeRenderer.ShapeType.Filled);
 
-        float size = 30f;
         float tipX   = position.x + MathUtils.cosDeg(rotation) * size;
         float tipY   = position.y + MathUtils.sinDeg(rotation) * size;
         float leftX  = position.x + MathUtils.cosDeg(rotation + 135) * size;
@@ -104,4 +109,9 @@ public class Player {
         Vector2 bulletDirection = new Vector2(MathUtils.cosDeg(rotation), MathUtils.sinDeg(rotation)).nor();
         bullets.add(new Bullet(new Vector2(bulletX, bulletY), bulletDirection, bulletSpeed));
     }
+
+    public Circle getHitbox(){
+        return hitbox;
+    }
+
 }

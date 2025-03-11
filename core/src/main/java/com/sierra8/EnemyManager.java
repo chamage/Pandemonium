@@ -1,5 +1,6 @@
 package com.sierra8;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -14,24 +15,28 @@ public class EnemyManager {
     private float enemySpeed;
 
     public EnemyManager(float spawnCooldown, int maxEnemies, float enemySpeed){
-        enemies = new ArrayList<Enemy>();
+        enemies = new ArrayList<>();
         this.spawnCooldown = spawnCooldown;
         this.spawnTimer = 0;
         this.maxEnemies = maxEnemies;
         this.enemySpeed = enemySpeed;
     }
 
-    public void update(float delta, Vector2 playerPosition, ArrayList<Bullet> bullets){
+    public void update(float delta, Player player, ArrayList<Bullet> bullets){
         spawnTimer += delta;
 
         if (spawnTimer >= spawnCooldown && enemies.size() < maxEnemies){
-            spawnEnemy(playerPosition);
+            spawnEnemy(player.getPosition());
             spawnTimer = 0;
         }
 
         for(int i = enemies.size() - 1; i >= 0; i--){
             Enemy enemy = enemies.get(i);
-            enemy.update(delta, new Vector2(playerPosition), enemies);
+            enemy.update(delta, new Vector2(player.getPosition()), enemies);
+
+            if (enemy.collidesWith(player)){
+                //Gdx.app.exit();
+            }
 
             for (Bullet bullet : bullets){
                 if (enemy.collidesWith(bullet)){
