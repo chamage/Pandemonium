@@ -13,6 +13,7 @@ public class EnemyManager {
     private float spawnTimer;
     private int maxEnemies;
     private float enemySpeed;
+    private PlayerDeathListener playerDeathListener;
 
     public EnemyManager(float spawnCooldown, int maxEnemies, float enemySpeed){
         enemies = new ArrayList<>();
@@ -20,6 +21,10 @@ public class EnemyManager {
         this.spawnTimer = 0;
         this.maxEnemies = maxEnemies;
         this.enemySpeed = enemySpeed;
+    }
+
+    public void setPlayerDeathListener(PlayerDeathListener playerDeathListener) {
+        this.playerDeathListener = playerDeathListener;
     }
 
     public void update(float delta, Player player, ArrayList<Bullet> bullets){
@@ -35,7 +40,9 @@ public class EnemyManager {
             enemy.update(delta, new Vector2(player.getPosition()), enemies);
 
             if (enemy.collidesWith(player)){
-                //Gdx.app.exit();
+                if (playerDeathListener != null){
+                    playerDeathListener.onPlayerDeath();
+                }
             }
 
             for (Bullet bullet : bullets){

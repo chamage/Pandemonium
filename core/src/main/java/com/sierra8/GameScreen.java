@@ -68,6 +68,13 @@ public class GameScreen implements Screen {
             player.update(delta, camera);
             enemyManager.update(delta, player, player.getBullets());
 
+            enemyManager.setPlayerDeathListener(new PlayerDeathListener() {
+                @Override
+                public void onPlayerDeath() {
+                    game.setScreen(new PlayerDeathScreen(game));
+                }
+            });
+
             camera.position.set(player.getPosition().x, player.getPosition().y, 0);
             camera.update();
         }
