@@ -44,7 +44,8 @@ public class PlayerDeathScreen implements Screen {
         Label.LabelStyle labelStyle = new Label.LabelStyle(font, Color.WHITE);
         Label label = new Label("You died!", labelStyle);
         label.setFontScale(3);
-        label.setPosition(50, Gdx.graphics.getHeight() - 200);
+
+        label.setPosition((Gdx.graphics.getWidth() / 2f - label.getWidth()), Gdx.graphics.getHeight() - 200);
         stage.addActor(label);
 
 
@@ -52,7 +53,7 @@ public class PlayerDeathScreen implements Screen {
         buttonStyle.font = font;
 
         TextButton startButton = new TextButton("Restart", buttonStyle);
-        startButton.setPosition(50, Gdx.graphics.getHeight() - 300);
+        startButton.setPosition((Gdx.graphics.getWidth() - 400) / 2f, Gdx.graphics.getHeight() - 300);
         startButton.setSize(400, 50);
         startButton.addListener(new ChangeListener() {
             @Override
@@ -63,7 +64,7 @@ public class PlayerDeathScreen implements Screen {
         });
 
         TextButton quitButton = new TextButton("Quit", buttonStyle);
-        quitButton.setPosition(50, Gdx.graphics.getHeight() - 360);
+        quitButton.setPosition((Gdx.graphics.getWidth() - 400) / 2f, Gdx.graphics.getHeight() - 360);
         quitButton.setSize(400, 50);
         quitButton.addListener(new ChangeListener() {
             @Override

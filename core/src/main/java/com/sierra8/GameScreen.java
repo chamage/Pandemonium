@@ -37,7 +37,7 @@ public class GameScreen implements Screen {
         float viewportHeight = 720;
 
         camera = new OrthographicCamera(viewportWidth, viewportHeight);
-        camera.position.set(viewportWidth / 2f, viewportHeight / 2f, 0);
+        camera.position.set(0, 0, 0);
         camera.update();
 
         shape = new ShapeRenderer();
@@ -47,7 +47,7 @@ public class GameScreen implements Screen {
         font.setUseIntegerPositions(false);
         font.getData().setScale(viewportHeight / Gdx.graphics.getHeight());
 
-        player = new Player(viewportWidth / 2f, viewportHeight / 2f);
+        player = new Player(0, 0);
         enemyManager = new EnemyManager(1f, 30, 220f);
 
     }

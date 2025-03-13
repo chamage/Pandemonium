@@ -29,12 +29,12 @@ public class MainMenuScreen implements Screen {
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("ui/ThaleahFat.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        parameter.size = 48;
+        parameter.size = 82;
         parameter.color = Color.WHITE;
 
         batch = new SpriteBatch();
         font = generator.generateFont(parameter);
-        generator.dispose();
+
 
         stage = new Stage();
         Gdx.input.setInputProcessor(stage);
@@ -46,6 +46,10 @@ public class MainMenuScreen implements Screen {
         label.setFontScale(3);
         label.setPosition(50, Gdx.graphics.getHeight() - 200);
         stage.addActor(label);
+
+        parameter.size = 42;
+        font = generator.generateFont(parameter);
+        generator.dispose();
 
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
