@@ -77,6 +77,7 @@ public class GameScreen implements Screen {
             enemyManager.setPlayerDeathListener(new PlayerDeathListener() {
                 @Override
                 public void onPlayerDeath() {
+                    stopTrack();
                     game.setScreen(new PlayerDeathScreen(game));
                 }
             });
