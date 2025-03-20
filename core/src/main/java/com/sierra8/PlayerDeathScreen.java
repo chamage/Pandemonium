@@ -5,9 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -21,39 +19,30 @@ public class PlayerDeathScreen implements Screen {
     private Stage stage;
     private Skin skin;
     private SpriteBatch batch;
-    private BitmapFont font;
     private Texture background;
 
     public PlayerDeathScreen(final SierraGame game) {
         this.game = game;
 
-        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("ui/ThaleahFat.ttf"));
-        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        parameter.size = 48;
-        parameter.color = Color.WHITE;
-
         batch = new SpriteBatch();
-        font = generator.generateFont(parameter);
-        generator.dispose();
 
         stage = new Stage();
         Gdx.input.setInputProcessor(stage);
 
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
-        Label.LabelStyle labelStyle = new Label.LabelStyle(font, Color.WHITE);
+        Label.LabelStyle labelStyle = new Label.LabelStyle(game.fontMain, Color.WHITE);
         Label label = new Label("You died!", labelStyle);
         label.setFontScale(3);
-
-        label.setPosition((Gdx.graphics.getWidth() / 2f - label.getWidth()), Gdx.graphics.getHeight() - 200);
+        label.setPosition(50, Gdx.graphics.getHeight() - 200);
         stage.addActor(label);
 
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
-        buttonStyle.font = font;
+        buttonStyle.font = game.fontMain;
 
         TextButton startButton = new TextButton("Restart", buttonStyle);
-        startButton.setPosition((Gdx.graphics.getWidth() - 400) / 2f, Gdx.graphics.getHeight() - 300);
+        startButton.setPosition(50, Gdx.graphics.getHeight() - 300);
         startButton.setSize(400, 50);
         startButton.addListener(new ChangeListener() {
             @Override
@@ -64,7 +53,7 @@ public class PlayerDeathScreen implements Screen {
         });
 
         TextButton quitButton = new TextButton("Quit", buttonStyle);
-        quitButton.setPosition((Gdx.graphics.getWidth() - 400) / 2f, Gdx.graphics.getHeight() - 360);
+        quitButton.setPosition(50, Gdx.graphics.getHeight() - 360);
         quitButton.setSize(400, 50);
         quitButton.addListener(new ChangeListener() {
             @Override
@@ -121,7 +110,6 @@ public class PlayerDeathScreen implements Screen {
     public void dispose() {
         stage.dispose();
         skin.dispose();
-        font.dispose();
         batch.dispose();
     }
 }

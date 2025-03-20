@@ -5,9 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -21,39 +19,26 @@ public class MainMenuScreen implements Screen {
     private Stage stage;
     private Skin skin;
     private SpriteBatch batch;
-    private BitmapFont font;
     private Texture background;
 
     public MainMenuScreen(final SierraGame game) {
         this.game = game;
 
-        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("ui/ThaleahFat.ttf"));
-        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        parameter.size = 82;
-        parameter.color = Color.WHITE;
-
         batch = new SpriteBatch();
-        font = generator.generateFont(parameter);
-
 
         stage = new Stage();
         Gdx.input.setInputProcessor(stage);
 
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
-        Label.LabelStyle labelStyle = new Label.LabelStyle(font, Color.WHITE);
+        Label.LabelStyle labelStyle = new Label.LabelStyle(game.fontMain, Color.WHITE);
         Label label = new Label("SIERRA8", labelStyle);
         label.setFontScale(3);
         label.setPosition(50, Gdx.graphics.getHeight() - 200);
         stage.addActor(label);
 
-        parameter.size = 42;
-        font = generator.generateFont(parameter);
-        generator.dispose();
-
-
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
-        buttonStyle.font = font;
+        buttonStyle.font = game.fontMain;
 
         TextButton startButton = new TextButton("Start Game", buttonStyle);
         startButton.setPosition(50, Gdx.graphics.getHeight() - 300);
@@ -124,7 +109,6 @@ public class MainMenuScreen implements Screen {
     public void dispose() {
         stage.dispose();
         skin.dispose();
-        font.dispose();
         batch.dispose();
     }
 }

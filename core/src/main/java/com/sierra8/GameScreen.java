@@ -3,13 +3,16 @@ package com.sierra8;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class GameScreen implements Screen {
@@ -25,8 +28,8 @@ public class GameScreen implements Screen {
     private ShapeRenderer shape;
     private SpriteBatch batch;
 
-    private BitmapFont font;
-
+    private Music[] musicLoop;
+    private int currentTrack;
 
     public GameScreen(final SierraGame game){
         this.game = game;
@@ -43,22 +46,25 @@ public class GameScreen implements Screen {
         shape = new ShapeRenderer();
         batch = new SpriteBatch();
 
-        font = new BitmapFont();
-        font.setUseIntegerPositions(false);
-        font.getData().setScale(viewportHeight / Gdx.graphics.getHeight());
-
         player = new Player(0, 0);
         enemyManager = new EnemyManager(1f, 30, 220f);
 
+        musicLoop = new Music[8];
+        for (int i = 0; i < musicLoop.length; i++){
+            musicLoop[i] = Gdx.audio.newMusic(Gdx.files.internal("music/loop" + (i+1) + ".mp3"));
+        }
+
+        playTrack();
     }
 
     @Override
     public void show() {
-
+        playTrack();
     }
 
     @Override
     public void render(float delta) {
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)){
             if (paused) resume();
             else pause();
@@ -72,6 +78,13 @@ public class GameScreen implements Screen {
                 @Override
                 public void onPlayerDeath() {
                     game.setScreen(new PlayerDeathScreen(game));
+                }
+            });
+
+            enemyManager.setEnemyDeathListener(new EnemyDeathListener() {
+                @Override
+                public void onEnemyDeath() {
+                    player.enemyKilled();
                 }
             });
 
@@ -107,20 +120,18 @@ public class GameScreen implements Screen {
         batch.begin();
 
         String debug = "X: " + player.getPosition().x + " Y: " + player.getPosition().y
-            + " Bullets: " + player.getBullets().size() + " Enemies: " + enemyManager.getEnemies().size();
-        font.setColor(Color.WHITE);
-        font.draw(batch, debug, camera.position.x - camera.viewportWidth / 2 + 5,
+            + " Bullets: " + player.getBullets().size() + " Enemies: " + enemyManager.getEnemies().size() + " FPS: " + Gdx.graphics.getFramesPerSecond();
+        game.fontSmaller.draw(batch, debug, camera.position.x - camera.viewportWidth / 2 + 5,
             camera.position.y + camera.viewportHeight / 2 - 10);
+        String killStreak = "Enemies killed: " + player.getEnemiesKilled();
+        game.fontSmaller.draw(batch, killStreak, player.getPosition().x + 30, player.getPosition().y + 30);
+
 
         if (paused) {
-            font.getData().setScale(2f);
-            font.setColor(Color.WHITE);
-            font.draw(batch, "PAUSED", camera.position.x - 50, camera.position.y + 10);
-            font.getData().setScale(1f); // Reset scale
+            game.fontMain.draw(batch, "PAUSED", camera.position.x - 50, camera.position.y + 10);
         }
 
         batch.end();
-
     }
 
     @Override
@@ -150,8 +161,11 @@ public class GameScreen implements Screen {
     public void dispose() {
         shape.dispose();
         batch.dispose();
+        stopTrack();
+        for (Music music : musicLoop){
+            music.dispose();
+        }
     }
-
     private void createBackground(){
 
         int squareSize = 60;
@@ -174,6 +188,42 @@ public class GameScreen implements Screen {
                     shape.setColor(Color.LIGHT_GRAY);
                 }
                 shape.rect(i * squareSize, j * squareSize, squareSize, squareSize);
+            }
+        }
+    }
+
+    private void saveGameData(){
+        Vector2 playerPosition = player.getPosition();
+        List<Vector2> enemyPositions = new ArrayList<>();
+        for (Enemy enemy : enemyManager.getEnemies()) {
+            enemyPositions.add(enemy.getPosition());
+        }
+        List<Vector2> bulletPositions = new ArrayList<>();
+        for (Bullet bullet : player.getBullets()) {
+            bulletPositions.add(bullet.getPosition());
+        }
+
+        GameData gameData = new GameData(playerPosition, enemyPositions, bulletPositions);
+    }
+
+    private void playTrack(){
+        currentTrack = random.nextInt(musicLoop.length);
+        musicLoop[currentTrack].setLooping(false);
+        musicLoop[currentTrack].setVolume(.3f);
+        musicLoop[currentTrack].play();
+
+        musicLoop[currentTrack].setOnCompletionListener(new Music.OnCompletionListener() {
+            @Override
+            public void onCompletion(Music music) {
+                playTrack();
+            }
+        });
+    }
+
+    private void stopTrack(){
+        for (Music music : musicLoop){
+            if (music.isPlaying()){
+                music.stop();
             }
         }
     }

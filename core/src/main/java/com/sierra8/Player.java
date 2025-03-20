@@ -2,6 +2,7 @@ package com.sierra8;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -20,6 +21,10 @@ public class Player {
     private float size = 30f;
     private ArrayList<Bullet> bullets;
     private Circle hitbox;
+    private float shootCooldown;
+    private float shootTimer;
+    private Sound shootSound;
+    private int enemiesKilled;
 
     public Player(float x, float y){
         this.position = new Vector2(x, y);
@@ -27,6 +32,10 @@ public class Player {
         this.speedSprint = 1.5f;
         this.bullets = new ArrayList<>();
         this.hitbox = new Circle(position, size*.6f);
+        this.shootCooldown = 1f;
+        this.shootTimer = 1f;
+        this.enemiesKilled = 0;
+        shootSound = Gdx.audio.newSound(Gdx.files.internal("sound/shoot.mp3"));
     }
 
     public void update(float delta, Camera camera){
@@ -56,8 +65,10 @@ public class Player {
 
         hitbox.setPosition(position);
 
-        if (Gdx.input.justTouched()){
+        shootTimer += 0.1f;
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT ) && shootTimer >= shootCooldown){
             shootBullet();
+            shootTimer = 0f;
         }
 
         for (int i = bullets.size() - 1; i >= 0; i--) {
@@ -108,10 +119,18 @@ public class Player {
 
         Vector2 bulletDirection = new Vector2(MathUtils.cosDeg(rotation), MathUtils.sinDeg(rotation)).nor();
         bullets.add(new Bullet(new Vector2(bulletX, bulletY), bulletDirection, bulletSpeed));
+        shootSound.play(.12f);
     }
 
     public Circle getHitbox(){
         return hitbox;
+    }
+
+    public int getEnemiesKilled(){
+        return enemiesKilled;
+    }
+    public void enemyKilled(){
+        enemiesKilled++;
     }
 
 }

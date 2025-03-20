@@ -1,6 +1,5 @@
 package com.sierra8;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -14,6 +13,7 @@ public class EnemyManager {
     private int maxEnemies;
     private float enemySpeed;
     private PlayerDeathListener playerDeathListener;
+    private EnemyDeathListener enemyDeathListener;
 
     public EnemyManager(float spawnCooldown, int maxEnemies, float enemySpeed){
         enemies = new ArrayList<>();
@@ -25,6 +25,10 @@ public class EnemyManager {
 
     public void setPlayerDeathListener(PlayerDeathListener playerDeathListener) {
         this.playerDeathListener = playerDeathListener;
+    }
+
+    public void setEnemyDeathListener(EnemyDeathListener enemyDeathListener) {
+        this.enemyDeathListener = enemyDeathListener;
     }
 
     public void update(float delta, Player player, ArrayList<Bullet> bullets){
@@ -47,6 +51,9 @@ public class EnemyManager {
 
             for (Bullet bullet : bullets){
                 if (enemy.collidesWith(bullet)){
+                    if (enemyDeathListener != null){
+                        enemyDeathListener.onEnemyDeath();
+                    }
                     enemy.markDead();
                     bullets.remove(bullet);
                     break;

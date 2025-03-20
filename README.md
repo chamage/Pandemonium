@@ -20,3 +20,8 @@ Planned features:
 - `Textures`
 - `Main menu`
 - `... and other`
+
+# Game assets used
+
+- [Synthwave Music in game](https://alkakrab.itch.io/free-shooter-synthwave-music-pack)
+- [Gun sounds](https://f8studios.itch.io/snakes-second-authentic-gun-sounds-pack)
