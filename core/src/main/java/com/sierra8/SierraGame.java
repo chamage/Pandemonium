@@ -11,6 +11,9 @@ public class SierraGame extends Game {
     public static BitmapFont fontMain;
     public static BitmapFont fontSmaller;
 
+    public float musicVolume;
+    public float soundVolume;
+
     @Override
     public void create() {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("ui/ThaleahFat.ttf"));
@@ -21,6 +24,10 @@ public class SierraGame extends Game {
         parameter.size = 20;
         fontSmaller = generator.generateFont(parameter);
         generator.dispose();
+
+        musicVolume = 1f;
+        soundVolume = 1f;
+
         setScreen(new MainMenuScreen(this));
     }
 }

@@ -126,6 +126,8 @@ public class GameScreen implements Screen {
             camera.position.y + camera.viewportHeight / 2 - 10);
         String killStreak = "Enemies killed: " + player.getEnemiesKilled();
         game.fontSmaller.draw(batch, killStreak, player.getPosition().x + 30, player.getPosition().y + 30);
+        String ammoDisplay = player.getCurrentMag() + " / 10";
+        game.fontSmaller.draw(batch, ammoDisplay, player.getPosition().x - 30, player.getPosition().y - 30);
 
 
         if (paused) {
@@ -210,7 +212,7 @@ public class GameScreen implements Screen {
     private void playTrack(){
         currentTrack = random.nextInt(musicLoop.length);
         musicLoop[currentTrack].setLooping(false);
-        musicLoop[currentTrack].setVolume(.3f);
+        musicLoop[currentTrack].setVolume(game.musicVolume);
         musicLoop[currentTrack].play();
 
         musicLoop[currentTrack].setOnCompletionListener(new Music.OnCompletionListener() {

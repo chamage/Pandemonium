@@ -10,10 +10,11 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 
-public class MainMenuScreen implements Screen {
+public class OptionsScreen implements Screen {
 
     final SierraGame game;
     private Stage stage;
@@ -21,7 +22,7 @@ public class MainMenuScreen implements Screen {
     private SpriteBatch batch;
     private Texture background;
 
-    public MainMenuScreen(final SierraGame game) {
+    public OptionsScreen(final SierraGame game) {
         this.game = game;
 
         batch = new SpriteBatch();
@@ -32,52 +33,57 @@ public class MainMenuScreen implements Screen {
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
 
         Label.LabelStyle labelStyle = new Label.LabelStyle(game.fontMain, Color.WHITE);
-        Label label = new Label("SIERRA8", labelStyle);
-        label.setFontScale(3);
+        Label label = new Label("Music", labelStyle);
+        label.setFontScale(1.2f);
         label.setPosition(50, Gdx.graphics.getHeight() - 200);
         stage.addActor(label);
+
+        Slider volume = new Slider(0f, 1f, 0.1f, false, skin);
+        volume.setPosition(200, Gdx.graphics.getHeight() - 190);
+        volume.setValue(1f);
+        volume.setSize(500, 20);
+        volume.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent changeEvent, Actor actor) {
+                game.musicVolume = volume.getValue();
+            }
+        });
+
+        Label label2 = new Label("Sound", labelStyle);
+        label2.setFontScale(1.2f);
+        label2.setPosition(50, Gdx.graphics.getHeight() - 250);
+        stage.addActor(label2);
+
+        Slider volume2 = new Slider(0f, 1f, 0.1f, false, skin);
+        volume2.setPosition(200, Gdx.graphics.getHeight() - 240);
+        volume2.setValue(1f);
+        volume2.setSize(500, 20);
+        volume2.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent changeEvent, Actor actor) {
+                game.soundVolume = volume2.getValue();
+            }
+        });
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
         buttonStyle.font = game.fontMain;
 
-        TextButton startButton = new TextButton("Start Game", buttonStyle);
-        startButton.setPosition(50, Gdx.graphics.getHeight() - 300);
+        TextButton startButton = new TextButton("Back", buttonStyle);
+        startButton.setPosition(50, 50);
         startButton.setSize(400, 50);
         startButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent changeEvent, Actor actor) {
                 stage.dispose();
-                game.setScreen(new GameScreen(game));
-            }
-        });
-
-        TextButton optionsButton = new TextButton("Options", buttonStyle);
-        optionsButton.setPosition(50, Gdx.graphics.getHeight() - 360);
-        optionsButton.setSize(400, 50);
-        optionsButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent changeEvent, Actor actor) {
-                stage.dispose();
-                game.setScreen(new OptionsScreen(game));
-            }
-        });
-
-        TextButton quitButton = new TextButton("Quit", buttonStyle);
-        quitButton.setPosition(50, Gdx.graphics.getHeight() - 420);
-        quitButton.setSize(400, 50);
-        quitButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent changeEvent, Actor actor) {
-                Gdx.app.exit();
+                game.setScreen(new MainMenuScreen(game));
             }
         });
 
         stage.addActor(startButton);
-        stage.addActor(optionsButton);
-        stage.addActor(quitButton);
+        stage.addActor(volume);
+        stage.addActor(volume2);
 
         background = new Texture(Gdx.files.internal("ui/gamebg.png"));
-
     }
 
     @Override

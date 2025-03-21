@@ -25,6 +25,8 @@ public class Player {
     private float shootTimer;
     private Sound shootSound;
     private int enemiesKilled;
+    private int magSize, currentMag;
+    private float reloadSpeed = 3f;
 
     public Player(float x, float y){
         this.position = new Vector2(x, y);
@@ -36,6 +38,8 @@ public class Player {
         this.shootTimer = 1f;
         this.enemiesKilled = 0;
         shootSound = Gdx.audio.newSound(Gdx.files.internal("sound/shoot.mp3"));
+        this.magSize = 10;
+        this.currentMag = 10;
     }
 
     public void update(float delta, Camera camera){
@@ -67,8 +71,14 @@ public class Player {
 
         shootTimer += 0.1f;
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT ) && shootTimer >= shootCooldown){
-            shootBullet();
-            shootTimer = 0f;
+            if (currentMag > 0){
+                currentMag--;
+                shootBullet();
+                shootTimer = 0f;
+            }
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R)){
+            currentMag = magSize;
         }
 
         for (int i = bullets.size() - 1; i >= 0; i--) {
@@ -132,5 +142,6 @@ public class Player {
     public void enemyKilled(){
         enemiesKilled++;
     }
+    public int getCurrentMag(){return currentMag; }
 
 }
