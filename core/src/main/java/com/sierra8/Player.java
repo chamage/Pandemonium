@@ -27,6 +27,7 @@ public class Player {
     private int enemiesKilled;
     private int magSize, currentMag;
     private float reloadSpeed = 3f;
+    private PistolShootListener pistolShootListener;
 
     public Player(float x, float y){
         this.position = new Vector2(x, y);
@@ -37,9 +38,12 @@ public class Player {
         this.shootCooldown = 1f;
         this.shootTimer = 1f;
         this.enemiesKilled = 0;
-        shootSound = Gdx.audio.newSound(Gdx.files.internal("sound/shoot.mp3"));
         this.magSize = 10;
         this.currentMag = 10;
+    }
+
+    public void setPistolShootListener(PistolShootListener pistolShootListener) {
+        this.pistolShootListener = pistolShootListener;
     }
 
     public void update(float delta, Camera camera){
@@ -129,7 +133,7 @@ public class Player {
 
         Vector2 bulletDirection = new Vector2(MathUtils.cosDeg(rotation), MathUtils.sinDeg(rotation)).nor();
         bullets.add(new Bullet(new Vector2(bulletX, bulletY), bulletDirection, bulletSpeed));
-        shootSound.play(.12f);
+        pistolShootListener.onPistolShot();
     }
 
     public Circle getHitbox(){

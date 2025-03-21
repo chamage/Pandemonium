@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -28,6 +29,7 @@ public class GameScreen implements Screen {
     private ShapeRenderer shape;
     private SpriteBatch batch;
 
+    private Sound shootSound;
     private Music[] musicLoop;
     private int currentTrack;
 
@@ -53,6 +55,8 @@ public class GameScreen implements Screen {
         for (int i = 0; i < musicLoop.length; i++){
             musicLoop[i] = Gdx.audio.newMusic(Gdx.files.internal("music/loop" + (i+1) + ".mp3"));
         }
+
+        shootSound = Gdx.audio.newSound(Gdx.files.internal("sound/shoot.mp3"));
 
         playTrack();
     }
@@ -86,6 +90,13 @@ public class GameScreen implements Screen {
                 @Override
                 public void onEnemyDeath() {
                     player.enemyKilled();
+                }
+            });
+
+            player.setPistolShootListener(new PistolShootListener() {
+                @Override
+                public void onPistolShot() {
+                    shootSound.play(game.soundVolume);
                 }
             });
 
