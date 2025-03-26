@@ -95,7 +95,6 @@ public class Player {
     }
 
     public void render(ShapeRenderer shape, Camera camera){
-        shape.begin(ShapeRenderer.ShapeType.Filled);
 
         float tipX   = position.x + MathUtils.cosDeg(rotation) * size;
         float tipY   = position.y + MathUtils.sinDeg(rotation) * size;
@@ -111,9 +110,6 @@ public class Player {
         for (Bullet bullet : bullets){
             bullet.render(shape);
         }
-
-        shape.end();
-
     }
 
     public Vector2 getPosition(){

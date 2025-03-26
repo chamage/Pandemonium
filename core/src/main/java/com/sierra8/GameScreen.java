@@ -18,26 +18,37 @@ import java.util.Random;
 
 public class GameScreen implements Screen {
 
-    final SierraGame game;
-    private Random random;
+    // Core game ref
+    private final SierraGame game;
+
+    // Utilities
+    private final Random random = new Random();
     private boolean paused = false;
 
+    // Camera and render
     private OrthographicCamera camera;
-    private Player player;
-    private EnemyManager enemyManager;
-
     private ShapeRenderer shape;
     private SpriteBatch batch;
 
+    // Assets
     private Sound shootSound;
-    private Music[] musicLoop;
-    private int currentTrack;
+    private Music[] musicTracks;
+    private int currentTrackIndex = 0;
+
+
+    // Game components
+    private Player player;
+    private EnemyManager enemyManager;
+
 
     public GameScreen(final SierraGame game){
         this.game = game;
 
-        random = new Random();
+        intitialize();
+        loadAssets();
+    }
 
+    private void intitialize(){
         float viewportWidth = 1280;
         float viewportHeight = 720;
 
@@ -51,9 +62,33 @@ public class GameScreen implements Screen {
         player = new Player(0, 0);
         enemyManager = new EnemyManager(1f, 30, 220f);
 
-        musicLoop = new Music[8];
-        for (int i = 0; i < musicLoop.length; i++){
-            musicLoop[i] = Gdx.audio.newMusic(Gdx.files.internal("music/loop" + (i+1) + ".mp3"));
+        enemyManager.setPlayerDeathListener(new PlayerDeathListener() {
+            @Override
+            public void onPlayerDeath() {
+                stopTrack();
+                game.setScreen(new PlayerDeathScreen(game));
+            }
+        });
+
+        enemyManager.setEnemyDeathListener(new EnemyDeathListener() {
+            @Override
+            public void onEnemyDeath() {
+                player.enemyKilled();
+            }
+        });
+
+        player.setPistolShootListener(new PistolShootListener() {
+            @Override
+            public void onPistolShot() {
+                shootSound.play(game.soundVolume);
+            }
+        });
+    }
+
+    private void loadAssets(){
+        musicTracks = new Music[8];
+        for (int i = 0; i < musicTracks.length; i++){
+            musicTracks[i] = Gdx.audio.newMusic(Gdx.files.internal("music/loop" + (i+1) + ".mp3"));
         }
 
         shootSound = Gdx.audio.newSound(Gdx.files.internal("sound/shoot.mp3"));
@@ -66,6 +101,8 @@ public class GameScreen implements Screen {
         playTrack();
     }
 
+
+
     @Override
     public void render(float delta) {
 
@@ -75,46 +112,13 @@ public class GameScreen implements Screen {
         }
 
         if (!paused) {
-            player.update(delta, camera);
-            enemyManager.update(delta, player, player.getBullets());
-
-            enemyManager.setPlayerDeathListener(new PlayerDeathListener() {
-                @Override
-                public void onPlayerDeath() {
-                    stopTrack();
-                    game.setScreen(new PlayerDeathScreen(game));
-                }
-            });
-
-            enemyManager.setEnemyDeathListener(new EnemyDeathListener() {
-                @Override
-                public void onEnemyDeath() {
-                    player.enemyKilled();
-                }
-            });
-
-            player.setPistolShootListener(new PistolShootListener() {
-                @Override
-                public void onPistolShot() {
-                    shootSound.play(game.soundVolume);
-                }
-            });
-
-            camera.position.set(player.getPosition().x, player.getPosition().y, 0);
-            camera.update();
+            update(delta);
         }
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        shape.setProjectionMatrix(camera.combined);
-
-        shape.begin(ShapeRenderer.ShapeType.Filled);
-        createBackground();
-        shape.end();
-
-        player.render(shape, camera);
-        enemyManager.render(shape);
+        render();
 
         if (paused){
             Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -128,6 +132,28 @@ public class GameScreen implements Screen {
             Gdx.gl.glDisable(GL20.GL_BLEND);
         }
 
+        if (paused) {
+            game.fontMain.draw(batch, "PAUSED", camera.position.x - 50, camera.position.y + 10);
+        }
+
+        batch.end();
+    }
+
+    private void update(float delta){
+        player.update(delta, camera);
+        enemyManager.update(delta, player, player.getBullets());
+        camera.position.set(player.getPosition().x, player.getPosition().y, 0);
+        camera.update();
+    }
+
+    private void render(){
+        shape.setProjectionMatrix(camera.combined);
+        shape.begin(ShapeRenderer.ShapeType.Filled);
+        createBackground();
+        player.render(shape, camera);
+        enemyManager.render(shape);
+        shape.end();
+
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
 
@@ -139,13 +165,6 @@ public class GameScreen implements Screen {
         game.fontSmaller.draw(batch, killStreak, player.getPosition().x + 30, player.getPosition().y + 30);
         String ammoDisplay = player.getCurrentMag() + " / 10";
         game.fontSmaller.draw(batch, ammoDisplay, player.getPosition().x - 30, player.getPosition().y - 30);
-
-
-        if (paused) {
-            game.fontMain.draw(batch, "PAUSED", camera.position.x - 50, camera.position.y + 10);
-        }
-
-        batch.end();
     }
 
     @Override
@@ -168,7 +187,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void hide() {
-
+        stopTrack();
     }
 
     @Override
@@ -176,13 +195,13 @@ public class GameScreen implements Screen {
         shape.dispose();
         batch.dispose();
         stopTrack();
-        for (Music music : musicLoop){
+        for (Music music : musicTracks){
             music.dispose();
         }
     }
     private void createBackground(){
 
-        int squareSize = 60;
+        int squareSize = 100;
 
         float camLeft   = camera.position.x - camera.viewportWidth / 2;
         float camRight  = camera.position.x + camera.viewportWidth / 2;
@@ -221,12 +240,12 @@ public class GameScreen implements Screen {
     }
 
     private void playTrack(){
-        currentTrack = random.nextInt(musicLoop.length);
-        musicLoop[currentTrack].setLooping(false);
-        musicLoop[currentTrack].setVolume(game.musicVolume);
-        musicLoop[currentTrack].play();
+        currentTrackIndex = random.nextInt(musicTracks.length);
+        musicTracks[currentTrackIndex].setLooping(false);
+        musicTracks[currentTrackIndex].setVolume(game.musicVolume);
+        musicTracks[currentTrackIndex].play();
 
-        musicLoop[currentTrack].setOnCompletionListener(new Music.OnCompletionListener() {
+        musicTracks[currentTrackIndex].setOnCompletionListener(new Music.OnCompletionListener() {
             @Override
             public void onCompletion(Music music) {
                 playTrack();
@@ -235,7 +254,7 @@ public class GameScreen implements Screen {
     }
 
     private void stopTrack(){
-        for (Music music : musicLoop){
+        for (Music music : musicTracks){
             if (music.isPlaying()){
                 music.stop();
             }

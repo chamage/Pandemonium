@@ -45,7 +45,6 @@ public class Enemy {
     }
 
     public void render(ShapeRenderer shape){
-        shape.begin(ShapeRenderer.ShapeType.Filled);
 
         float tipX   = position.x + MathUtils.cosDeg(rotation) * size;
         float tipY   = position.y + MathUtils.sinDeg(rotation) * size;
@@ -56,13 +55,6 @@ public class Enemy {
 
         shape.setColor(Color.RED);
         shape.triangle(tipX, tipY, leftX, leftY, rightX, rightY);
-        shape.end();
-        /*  Collision borders, debug check
-        shape.begin(ShapeRenderer.ShapeType.Line);
-        shape.setColor(Color.GREEN);  // Set to any visible color
-        shape.circle(hitbox.x, hitbox.y, hitbox.radius);
-        shape.end();
-         */
     }
 
     public boolean collidesWith(Bullet bullet) {
