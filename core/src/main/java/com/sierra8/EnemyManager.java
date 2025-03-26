@@ -41,7 +41,7 @@ public class EnemyManager {
 
         for(int i = enemies.size() - 1; i >= 0; i--){
             Enemy enemy = enemies.get(i);
-            enemy.update(delta, new Vector2(player.getPosition()), enemies);
+            enemy.update(delta, player.getPosition(), enemies);
 
             if (enemy.collidesWith(player)){
                 if (playerDeathListener != null){

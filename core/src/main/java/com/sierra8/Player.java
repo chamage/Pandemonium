@@ -14,32 +14,37 @@ import java.util.ArrayList;
 
 public class Player {
 
+    private static final float DEFAULT_SIZE = 30f;
+    private static final float DEFAULT_RELOAD_SPEED = 3f;
+
     private Vector2 position;
     private float speed;
     private float speedSprint;
     private float rotation;
-    private float size = 30f;
+    private float size;
     private ArrayList<Bullet> bullets;
     private Circle hitbox;
     private float shootCooldown;
     private float shootTimer;
-    private Sound shootSound;
     private int enemiesKilled;
     private int magSize, currentMag;
-    private float reloadSpeed = 3f;
+    private float reloadSpeed;
     private PistolShootListener pistolShootListener;
 
     public Player(float x, float y){
         this.position = new Vector2(x, y);
         this.speed = 300f;
-        this.speedSprint = 1.5f;
+        this.speedSprint = 400f;
+        this.rotation = 0;
+        this.size = DEFAULT_SIZE;
         this.bullets = new ArrayList<>();
         this.hitbox = new Circle(position, size*.6f);
-        this.shootCooldown = 1f;
+        this.shootCooldown = 0.6f;
         this.shootTimer = 1f;
-        this.enemiesKilled = 0;
         this.magSize = 10;
-        this.currentMag = 10;
+        this.currentMag = magSize;
+        this.reloadSpeed = DEFAULT_RELOAD_SPEED;
+        this.enemiesKilled = 0;
     }
 
     public void setPistolShootListener(PistolShootListener pistolShootListener) {
@@ -48,42 +53,11 @@ public class Player {
 
     public void update(float delta, Camera camera){
 
-        float currentSpeed = speed;
-        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)) {
-            currentSpeed *= speedSprint;
-        }
+        handleMovement(delta);
+        handleRotation(camera);
+        handleShooting(delta);
+        handleHitbox();
 
-        if (Gdx.input.isKeyPressed(Input.Keys.W)){
-            position.y += currentSpeed * delta;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.S)){
-            position.y -= currentSpeed * delta;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.D)){
-            position.x += currentSpeed * delta;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.A)){
-            position.x -= currentSpeed * delta;
-        }
-
-        Vector3 mousePos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
-        camera.unproject(mousePos);
-        Vector2 direction = new Vector2(mousePos.x - position.x, mousePos.y - position.y);
-        rotation = direction.angleDeg();
-
-        hitbox.setPosition(position);
-
-        shootTimer += 0.1f;
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT ) && shootTimer >= shootCooldown){
-            if (currentMag > 0){
-                currentMag--;
-                shootBullet();
-                shootTimer = 0f;
-            }
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.R)){
-            currentMag = magSize;
-        }
 
         for (int i = bullets.size() - 1; i >= 0; i--) {
             Bullet bullet = bullets.get(i);
@@ -92,6 +66,62 @@ public class Player {
                 bullets.remove(i);
             }
         }
+    }
+
+    private void handleMovement(float delta){
+        float moveSpeed = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) ? speedSprint : speed;
+
+
+        if (Gdx.input.isKeyPressed(Input.Keys.W)){
+            position.y += moveSpeed * delta;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.S)){
+            position.y -= moveSpeed * delta;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.D)){
+            position.x += moveSpeed * delta;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.A)){
+            position.x -= moveSpeed * delta;
+        }
+    }
+
+    private void handleRotation(Camera camera){
+        Vector3 mousePos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
+        camera.unproject(mousePos);
+        Vector2 direction = new Vector2(mousePos.x - position.x, mousePos.y - position.y);
+        rotation = direction.angleDeg();
+    }
+
+    private void handleShooting(float delta){
+        shootTimer += delta;
+
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && shootTimer >= shootCooldown) {
+            if (currentMag > 0) {
+                shootBullet();
+                shootTimer = 0;
+            } else {
+                reload();
+            }
+        }
+    }
+
+    private void shootBullet(){
+        Vector2 bulletPostion = position.cpy();
+        Vector2 bulletDirection = new Vector2(MathUtils.cosDeg(rotation), MathUtils.sinDeg(rotation)).nor();
+        bullets.add(new Bullet(bulletPostion, bulletDirection, 500f));
+        currentMag--;
+        if (pistolShootListener != null) {
+            pistolShootListener.onPistolShot();
+        }
+    }
+
+    private void reload(){
+        currentMag = magSize;
+    }
+
+    private void handleHitbox(){
+        hitbox.setPosition(position);
     }
 
     public void render(ShapeRenderer shape, Camera camera){
@@ -113,24 +143,13 @@ public class Player {
     }
 
     public Vector2 getPosition(){
-        return position;
+        return position.cpy();
     }
 
     public ArrayList<Bullet> getBullets(){
         return bullets;
     }
 
-    private void shootBullet(){
-        float size = 30f;
-        float bulletX = position.x + MathUtils.cosDeg(rotation) * size;
-        float bulletY = position.y + MathUtils.sinDeg(rotation) * size;
-
-        float bulletSpeed = 500f;
-
-        Vector2 bulletDirection = new Vector2(MathUtils.cosDeg(rotation), MathUtils.sinDeg(rotation)).nor();
-        bullets.add(new Bullet(new Vector2(bulletX, bulletY), bulletDirection, bulletSpeed));
-        pistolShootListener.onPistolShot();
-    }
 
     public Circle getHitbox(){
         return hitbox;
