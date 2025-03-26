@@ -49,12 +49,9 @@ public class GameScreen implements Screen {
     }
 
     private void intitialize(){
-        float viewportWidth = 1280;
-        float viewportHeight = 720;
 
-        camera = new OrthographicCamera(viewportWidth, viewportHeight);
-        camera.position.set(0, 0, 0);
-        camera.update();
+        camera = new OrthographicCamera();
+        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         shape = new ShapeRenderer();
         batch = new SpriteBatch();
@@ -105,38 +102,21 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        clearScreen();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)){
             if (paused) resume();
             else pause();
         }
 
+        renderGame();
+
         if (!paused) {
             update(delta);
         }
-
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        render();
-
-        if (paused){
-            Gdx.gl.glEnable(GL20.GL_BLEND);
-            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-            shape.begin(ShapeRenderer.ShapeType.Filled);
-            shape.setColor(0, 0, 0, 0.7f);
-            shape.rect(camera.position.x - camera.viewportWidth / 2,
-                camera.position.y - camera.viewportHeight / 2,
-                camera.viewportWidth, camera.viewportHeight);
-            shape.end();
-            Gdx.gl.glDisable(GL20.GL_BLEND);
+        else{
+            noUpdate();
         }
-
-        if (paused) {
-            game.fontMain.draw(batch, "PAUSED", camera.position.x - 50, camera.position.y + 10);
-        }
-
-        batch.end();
     }
 
     private void update(float delta){
@@ -146,7 +126,24 @@ public class GameScreen implements Screen {
         camera.update();
     }
 
-    private void render(){
+    private void noUpdate(){
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shape.setProjectionMatrix(camera.combined);
+        shape.begin(ShapeRenderer.ShapeType.Filled);
+        shape.setColor(0, 0, 0, 0.7f);
+        shape.rect(camera.position.x - camera.viewportWidth / 2,
+            camera.position.y - camera.viewportHeight / 2,
+            camera.viewportWidth, camera.viewportHeight);
+        shape.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        game.fontMain.draw(batch, "PAUSED", camera.position.x - 50, camera.position.y + 10);
+        batch.end();
+    }
+
+    private void renderGame(){
         shape.setProjectionMatrix(camera.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
         createBackground();
@@ -165,6 +162,12 @@ public class GameScreen implements Screen {
         game.fontSmaller.draw(batch, killStreak, player.getPosition().x + 30, player.getPosition().y + 30);
         String ammoDisplay = player.getCurrentMag() + " / 10";
         game.fontSmaller.draw(batch, ammoDisplay, player.getPosition().x - 30, player.getPosition().y - 30);
+        batch.end();
+    }
+
+    private void clearScreen(){
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
     }
 
     @Override
