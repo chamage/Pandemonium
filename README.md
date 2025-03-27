@@ -15,10 +15,10 @@ Planned features:
 - `Inventory`
 - `Upgrades`
 - `Bosses`
-- `Procedurally generated maps`
-- `Music and sounds`
-- `Textures`
-- `Main menu`
+- `Procedurally generated maps` ✅ (kinda done ig)
+- `Music and sounds` ✅ (partially)
+- `Textures` 🖊️ (probably next)
+- `Main menu` ✅ (minor improvements to be done)
 - `... and other`
 
 # Game assets used
