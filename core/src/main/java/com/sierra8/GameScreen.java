@@ -5,7 +5,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -35,15 +34,11 @@ public class GameScreen implements Screen {
     private Sound shootSound;
     private Music[] musicTracks;
     private int currentTrackIndex = 0;
-
+    private Texture grassTexture;
 
     // Game components
     private Player player;
     private EnemyManager enemyManager;
-
-    private Texture grassTexture;
-
-
 
     public GameScreen(final SierraGame game){
         this.game = game;
@@ -63,27 +58,14 @@ public class GameScreen implements Screen {
         player = new Player(0, 0);
         enemyManager = new EnemyManager(1f, 30, 220f);
 
-        enemyManager.setPlayerDeathListener(new PlayerDeathListener() {
-            @Override
-            public void onPlayerDeath() {
-                stopTrack();
-                game.setScreen(new PlayerDeathScreen(game));
-            }
+        enemyManager.setPlayerDeathListener(() -> {
+            stopTrack();
+            game.setScreen(new PlayerDeathScreen(game));
         });
 
-        enemyManager.setEnemyDeathListener(new EnemyDeathListener() {
-            @Override
-            public void onEnemyDeath() {
-                player.enemyKilled();
-            }
-        });
+        enemyManager.setEnemyDeathListener(() -> player.enemyKilled());
 
-        player.setPistolShootListener(new PistolShootListener() {
-            @Override
-            public void onPistolShot() {
-                shootSound.play(game.soundVolume);
-            }
-        });
+        player.setPistolShootListener(() -> shootSound.play(game.soundVolume));
     }
 
     private void loadAssets(){
@@ -96,14 +78,12 @@ public class GameScreen implements Screen {
 
         grassTexture = new Texture(Gdx.files.internal("textures/grass.png"));
 
-        playTrack();
     }
 
     @Override
     public void show() {
+        playTrack();
     }
-
-
 
     @Override
     public void render(float delta) {
@@ -144,7 +124,7 @@ public class GameScreen implements Screen {
         Gdx.gl.glDisable(GL20.GL_BLEND);
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        game.fontMain.draw(batch, "PAUSED", camera.position.x - 50, camera.position.y + 10);
+        SierraGame.fontMain.draw(batch, "PAUSED", camera.position.x - 50, camera.position.y + 10);
         batch.end();
     }
 
@@ -152,7 +132,7 @@ public class GameScreen implements Screen {
         shape.setProjectionMatrix(camera.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
         createBackground();
-        player.render(shape, camera);
+        player.render(shape);
         enemyManager.render(shape);
         shape.end();
 
@@ -161,12 +141,12 @@ public class GameScreen implements Screen {
 
         String debug = "X: " + player.getPosition().x + " Y: " + player.getPosition().y
             + " Bullets: " + player.getBullets().size() + " Enemies: " + enemyManager.getEnemies().size() + " FPS: " + Gdx.graphics.getFramesPerSecond();
-        game.fontSmaller.draw(batch, debug, camera.position.x - camera.viewportWidth / 2 + 5,
+        SierraGame.fontSmaller.draw(batch, debug, camera.position.x - camera.viewportWidth / 2 + 5,
             camera.position.y + camera.viewportHeight / 2 - 10);
         String killStreak = "Enemies killed: " + player.getEnemiesKilled();
-        game.fontSmaller.draw(batch, killStreak, player.getPosition().x + 30, player.getPosition().y + 30);
-        String ammoDisplay = player.getCurrentMag() + " / 10";
-        game.fontSmaller.draw(batch, ammoDisplay, player.getPosition().x - 30, player.getPosition().y - 30);
+        SierraGame.fontSmaller.draw(batch, killStreak, player.getPosition().x + 30, player.getPosition().y + 30);
+        String ammoDisplay = player.getCurrentMag() + " / 12";
+        SierraGame.fontSmaller.draw(batch, ammoDisplay, player.getPosition().x - 30, player.getPosition().y - 30);
         batch.end();
     }
 
@@ -234,32 +214,6 @@ public class GameScreen implements Screen {
         batch.end();
     }
 
-    private void createBackground2(){
-
-        int squareSize = 100;
-
-        float camLeft   = camera.position.x - camera.viewportWidth / 2;
-        float camRight  = camera.position.x + camera.viewportWidth / 2;
-        float camBottom = camera.position.y - camera.viewportHeight / 2;
-        float camTop    = camera.position.y + camera.viewportHeight / 2;
-
-        int startX = (int)(camLeft / squareSize) - 1;
-        int endX   = (int)(camRight / squareSize) + 1;
-        int startY = (int)(camBottom / squareSize) - 1;
-        int endY   = (int)(camTop / squareSize) + 1;
-
-        for (int i = startX; i <= endX; i++) {
-            for (int j = startY; j <= endY; j++) {
-                if ((i + j) % 2 == 0) {
-                    shape.setColor(Color.DARK_GRAY);
-                } else {
-                    shape.setColor(Color.LIGHT_GRAY);
-                }
-                shape.rect(i * squareSize, j * squareSize, squareSize, squareSize);
-            }
-        }
-    }
-
     private void saveGameData(){
         Vector2 playerPosition = player.getPosition();
         List<Vector2> enemyPositions = new ArrayList<>();
@@ -275,17 +229,13 @@ public class GameScreen implements Screen {
     }
 
     private void playTrack(){
+        if (musicTracks[currentTrackIndex].isPlaying()){stopTrack();}
         currentTrackIndex = random.nextInt(musicTracks.length);
         musicTracks[currentTrackIndex].setLooping(false);
         musicTracks[currentTrackIndex].setVolume(game.musicVolume);
         musicTracks[currentTrackIndex].play();
 
-        musicTracks[currentTrackIndex].setOnCompletionListener(new Music.OnCompletionListener() {
-            @Override
-            public void onCompletion(Music music) {
-                playTrack();
-            }
-        });
+        musicTracks[currentTrackIndex].setOnCompletionListener(music -> playTrack());
     }
 
     private void stopTrack(){

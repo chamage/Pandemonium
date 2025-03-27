@@ -9,15 +9,16 @@ import com.badlogic.gdx.math.Vector2;
 import java.util.ArrayList;
 
 public class Enemy {
-    private Vector2 position;
-    private float speed;
-    private float rotation;
-    private float size;
+    private final Vector2 position;
+    private final Vector2 direction;
+    private final float speed;
+    private final float size;
     private boolean dead;
-    private Circle hitbox;
+    private final Circle hitbox;
 
     public Enemy(float x, float y, float speed){
         this.position = new Vector2(x, y);
+        this.direction = new Vector2();
         this.speed = speed;
         this.size = 30f;
         this.dead = false;
@@ -25,26 +26,33 @@ public class Enemy {
     }
 
     public void update(float delta, Vector2 playerPosition, ArrayList<Enemy> enemies){
-        Vector2 target = new Vector2(playerPosition.x, playerPosition.y);
-        Vector2 direction = target.sub(position);
-        if (direction.len() != 0) {
-            direction.nor();
+        direction.set(playerPosition).sub(position);
+
+        if (direction.len2() > 0.01f) {
+            direction.nor().scl(speed * delta);
+            position.add(direction);
         }
-        position.add(direction.scl(speed * delta));
-        rotation = direction.angleDeg();
 
         hitbox.setPosition(position);
 
+        handleCollisionWithOthers(delta, enemies);
+    }
+
+    private void handleCollisionWithOthers(float delta, ArrayList<Enemy> enemies){
         for (Enemy other : enemies) {
             if (other == this) continue;
-            if (position.dst(other.getPosition()) < 38f) {
-                Vector2 repulsion = new Vector2(position).sub(other.getPosition()).nor();
-                position.add(repulsion.scl(160f * delta));
+
+            float distance = position.dst(other.position);
+            if (distance < 38f && distance > 0f) {
+                Vector2 repulsion = new Vector2(position).sub(other.position).nor().scl(160f * delta);
+                position.add(repulsion);
+                hitbox.setPosition(position);
             }
         }
     }
 
     public void render(ShapeRenderer shape){
+        float rotation = direction.angleDeg();
 
         float tipX   = position.x + MathUtils.cosDeg(rotation) * size;
         float tipY   = position.y + MathUtils.sinDeg(rotation) * size;
