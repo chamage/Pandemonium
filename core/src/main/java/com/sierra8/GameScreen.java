@@ -8,6 +8,7 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
@@ -39,6 +40,9 @@ public class GameScreen implements Screen {
     // Game components
     private Player player;
     private EnemyManager enemyManager;
+
+    private Texture grassTexture;
+
 
 
     public GameScreen(final SierraGame game){
@@ -90,12 +94,13 @@ public class GameScreen implements Screen {
 
         shootSound = Gdx.audio.newSound(Gdx.files.internal("sound/shoot.mp3"));
 
+        grassTexture = new Texture(Gdx.files.internal("textures/grass.png"));
+
         playTrack();
     }
 
     @Override
     public void show() {
-        playTrack();
     }
 
 
@@ -202,7 +207,34 @@ public class GameScreen implements Screen {
             music.dispose();
         }
     }
-    private void createBackground(){
+
+    private void createBackground() {
+        float textureWidth = grassTexture.getWidth();
+        float textureHeight = grassTexture.getHeight();
+
+        float camX = camera.position.x - camera.viewportWidth / 2f;
+        float camY = camera.position.y - camera.viewportHeight / 2f;
+
+        float offsetX = camX % textureWidth;
+        float offsetY = camY % textureHeight;
+
+        if (offsetX < 0) offsetX += textureWidth;
+        if (offsetY < 0) offsetY += textureHeight;
+
+        batch.begin();
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                batch.draw(
+                    grassTexture,
+                    camX - offsetX + x * textureWidth,
+                    camY - offsetY + y * textureHeight
+                );
+            }
+        }
+        batch.end();
+    }
+
+    private void createBackground2(){
 
         int squareSize = 100;
 
