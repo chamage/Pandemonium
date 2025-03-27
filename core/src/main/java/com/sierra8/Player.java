@@ -100,9 +100,11 @@ public class Player {
             if (currentMag > 0) {
                 shootBullet();
                 shootTimer = 0;
-            } else {
-                reload();
             }
+        }
+
+        if (Gdx.input.isKeyPressed(Input.Keys.R)){
+            reload();
         }
     }
 
