@@ -25,7 +25,6 @@ public class PlayerDeathScreen implements Screen {
         batch = new SpriteBatch();
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
         stage = new Stage(new ScreenViewport(), batch);
-        Gdx.input.setInputProcessor(stage);
 
         background = new Texture(Gdx.files.internal("ui/gamebg.png"));
 
@@ -66,7 +65,7 @@ public class PlayerDeathScreen implements Screen {
 
     @Override
     public void show() {
-
+        Gdx.input.setInputProcessor(stage);
     }
 
     @Override

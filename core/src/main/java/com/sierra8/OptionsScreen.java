@@ -21,14 +21,22 @@ public class OptionsScreen implements Screen {
     private final SpriteBatch batch;
     private final Texture background;
 
-    public OptionsScreen(final SierraGame game) {
+    private final SierraGame game;
+    final Screen previousScreen;
+
+    public OptionsScreen(final SierraGame game, Screen previousScreen) {
+
+        this.game = game;
+        this.previousScreen = previousScreen;
 
         batch = new SpriteBatch();
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
-        stage = new Stage(new ScreenViewport(), batch);
-        Gdx.input.setInputProcessor(stage);
+        this.stage = new Stage(new ScreenViewport(), batch);
 
         background = new Texture(Gdx.files.internal("ui/gamebg.png"));
+    }
+
+    private void initializeUI(){
 
         Label.LabelStyle labelStyle = new Label.LabelStyle(SierraGame.fontMain, Color.WHITE);
         Label label = new Label("Music", labelStyle);
@@ -72,8 +80,7 @@ public class OptionsScreen implements Screen {
         startButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent changeEvent, Actor actor) {
-                stage.dispose();
-                game.setScreen(new MainMenuScreen(game));
+                game.setScreen(previousScreen);
             }
         });
 
@@ -84,7 +91,9 @@ public class OptionsScreen implements Screen {
 
     @Override
     public void show() {
-
+        Gdx.input.setInputProcessor(stage);
+        stage.clear();
+        initializeUI();
     }
 
     @Override

@@ -83,11 +83,21 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
+        Gdx.input.setInputProcessor(null);
         playTrack();
     }
 
     @Override
     public void render(float delta) {
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.O)) {
+            if (game.optionsScreen == null || game.optionsScreen.previousScreen != this) {
+                game.optionsScreen = new OptionsScreen(game, this);
+            }
+            game.setScreen(game.optionsScreen);
+        }
+
+
         clearScreen();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)){

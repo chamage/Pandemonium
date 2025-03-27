@@ -26,16 +26,9 @@ public class MainMenuScreen implements Screen {
 
         batch = new SpriteBatch();
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
-        stage = new Stage(new ScreenViewport(), batch);
-        Gdx.input.setInputProcessor(stage);
+        this.stage = new Stage(new ScreenViewport(), batch);
 
         background = new Texture("ui/gamebg.png");
-
-        Label.LabelStyle labelStyle = new Label.LabelStyle(SierraGame.fontMain, Color.WHITE);
-        Label label = new Label("SIERRA8", labelStyle);
-        label.setFontScale(4);
-        label.setPosition(40, Gdx.graphics.getHeight() - 200);
-        stage.addActor(label);
 
         initializeUI();
     }
@@ -54,13 +47,20 @@ public class MainMenuScreen implements Screen {
         TextButton startButton = createButton("Start Game", 300, buttonStyle, new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                game.setScreen(new GameScreen(game));
+                if (game.gameScreen == null) {
+                    game.gameScreen = new GameScreen(game);
+                }
+                game.setScreen(game.gameScreen);
             }
         });
         TextButton optionsButton = createButton("Options", 370, buttonStyle, new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                game.setScreen(new OptionsScreen(game));
+                if (game.optionsScreen == null || game.optionsScreen.previousScreen != MainMenuScreen.this) {
+                    game.optionsScreen = new OptionsScreen(game, MainMenuScreen.this);
+                }
+                game.setScreen(game.optionsScreen);
+
             }
         });
         TextButton quitButton = createButton("Quit", 440, buttonStyle, new ChangeListener() {
@@ -89,6 +89,9 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void show() {
+        Gdx.input.setInputProcessor(stage);
+        stage.clear();
+        initializeUI();
 
     }
 
