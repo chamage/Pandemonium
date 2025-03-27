@@ -33,8 +33,8 @@ public class MainMenuScreen implements Screen {
 
         Label.LabelStyle labelStyle = new Label.LabelStyle(game.fontMain, Color.WHITE);
         Label label = new Label("SIERRA8", labelStyle);
-        label.setFontScale(3);
-        label.setPosition(50, Gdx.graphics.getHeight() - 200);
+        label.setFontScale(4);
+        label.setPosition(40, Gdx.graphics.getHeight() - 200);
         stage.addActor(label);
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
@@ -52,7 +52,7 @@ public class MainMenuScreen implements Screen {
         });
 
         TextButton optionsButton = new TextButton("Options", buttonStyle);
-        optionsButton.setPosition(50, Gdx.graphics.getHeight() - 360);
+        optionsButton.setPosition(50, Gdx.graphics.getHeight() - 370);
         optionsButton.setSize(400, 50);
         optionsButton.addListener(new ChangeListener() {
             @Override
@@ -63,7 +63,7 @@ public class MainMenuScreen implements Screen {
         });
 
         TextButton quitButton = new TextButton("Quit", buttonStyle);
-        quitButton.setPosition(50, Gdx.graphics.getHeight() - 420);
+        quitButton.setPosition(50, Gdx.graphics.getHeight() - 440);
         quitButton.setSize(400, 50);
         quitButton.addListener(new ChangeListener() {
             @Override
