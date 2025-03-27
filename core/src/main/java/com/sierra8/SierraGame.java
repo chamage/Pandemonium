@@ -6,10 +6,11 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 
+@SuppressWarnings("GDXJavaStaticResource")
 public class SierraGame extends Game {
 
-    public static BitmapFont fontMain;
-    public static BitmapFont fontSmaller;
+    protected static BitmapFont fontMain;
+    protected static BitmapFont fontSmaller;
 
     public float musicVolume;
     public float soundVolume;

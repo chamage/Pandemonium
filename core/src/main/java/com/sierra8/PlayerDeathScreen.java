@@ -12,26 +12,25 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class PlayerDeathScreen implements Screen {
 
-    final SierraGame game;
-    private Stage stage;
-    private Skin skin;
-    private SpriteBatch batch;
-    private Texture background;
+    private final Stage stage;
+    private final Skin skin;
+    private final SpriteBatch batch;
+    private final Texture background;
 
     public PlayerDeathScreen(final SierraGame game) {
-        this.game = game;
 
         batch = new SpriteBatch();
-
-        stage = new Stage();
+        skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
+        stage = new Stage(new ScreenViewport(), batch);
         Gdx.input.setInputProcessor(stage);
 
-        skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
+        background = new Texture(Gdx.files.internal("ui/gamebg.png"));
 
-        Label.LabelStyle labelStyle = new Label.LabelStyle(game.fontMain, Color.WHITE);
+        Label.LabelStyle labelStyle = new Label.LabelStyle(SierraGame.fontMain, Color.WHITE);
         Label label = new Label("You died!", labelStyle);
         label.setFontScale(3);
         label.setPosition(50, Gdx.graphics.getHeight() - 200);
@@ -39,7 +38,7 @@ public class PlayerDeathScreen implements Screen {
 
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
-        buttonStyle.font = game.fontMain;
+        buttonStyle.font = SierraGame.fontMain;
 
         TextButton startButton = new TextButton("Restart", buttonStyle);
         startButton.setPosition(50, Gdx.graphics.getHeight() - 300);
@@ -64,9 +63,6 @@ public class PlayerDeathScreen implements Screen {
 
         stage.addActor(startButton);
         stage.addActor(quitButton);
-
-        background = new Texture(Gdx.files.internal("ui/gamebg.png"));
-
     }
 
     @Override
@@ -76,6 +72,7 @@ public class PlayerDeathScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
@@ -111,5 +108,6 @@ public class PlayerDeathScreen implements Screen {
         stage.dispose();
         skin.dispose();
         batch.dispose();
+        background.dispose();
     }
 }

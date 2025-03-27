@@ -10,11 +10,12 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import java.util.Random;
+/*
 import com.badlogic.gdx.math.Vector2;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+*/
 
 public class GameScreen implements Screen {
 
@@ -43,11 +44,11 @@ public class GameScreen implements Screen {
     public GameScreen(final SierraGame game){
         this.game = game;
 
-        intitialize();
+        initialize();
         loadAssets();
     }
 
-    private void intitialize(){
+    private void initialize(){
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -214,6 +215,7 @@ public class GameScreen implements Screen {
         batch.end();
     }
 
+    /*
     private void saveGameData(){
         Vector2 playerPosition = player.getPosition();
         List<Vector2> enemyPositions = new ArrayList<>();
@@ -227,6 +229,7 @@ public class GameScreen implements Screen {
 
         GameData gameData = new GameData(playerPosition, enemyPositions, bulletPositions);
     }
+    */
 
     private void playTrack(){
         if (musicTracks[currentTrackIndex].isPlaying()){stopTrack();}

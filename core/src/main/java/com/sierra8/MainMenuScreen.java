@@ -12,73 +12,81 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class MainMenuScreen implements Screen {
 
-    final SierraGame game;
-    private Stage stage;
-    private Skin skin;
-    private SpriteBatch batch;
-    private Texture background;
+    private final SierraGame game;
+    private final Stage stage;
+    private final Skin skin;
+    private final SpriteBatch batch;
+    private final Texture background;
 
     public MainMenuScreen(final SierraGame game) {
         this.game = game;
 
         batch = new SpriteBatch();
-
-        stage = new Stage();
+        skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
+        stage = new Stage(new ScreenViewport(), batch);
         Gdx.input.setInputProcessor(stage);
 
-        skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
+        background = new Texture("ui/gamebg.png");
 
-        Label.LabelStyle labelStyle = new Label.LabelStyle(game.fontMain, Color.WHITE);
+        Label.LabelStyle labelStyle = new Label.LabelStyle(SierraGame.fontMain, Color.WHITE);
         Label label = new Label("SIERRA8", labelStyle);
         label.setFontScale(4);
         label.setPosition(40, Gdx.graphics.getHeight() - 200);
         stage.addActor(label);
 
-        TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
-        buttonStyle.font = game.fontMain;
+        initializeUI();
+    }
 
-        TextButton startButton = new TextButton("Start Game", buttonStyle);
-        startButton.setPosition(50, Gdx.graphics.getHeight() - 300);
-        startButton.setSize(400, 50);
-        startButton.addListener(new ChangeListener() {
+    private void initializeUI() {
+        // Label setup
+        Label.LabelStyle labelStyle = new Label.LabelStyle(SierraGame.fontMain, Color.WHITE);
+        Label label = new Label("SIERRA8", labelStyle);
+        label.setFontScale(4f);
+        label.setPosition(40, Gdx.graphics.getHeight() - 200f);
+
+        // Button setup
+        TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
+        buttonStyle.font = SierraGame.fontMain;
+
+        TextButton startButton = createButton("Start Game", 300, buttonStyle, new ChangeListener() {
             @Override
-            public void changed(ChangeEvent changeEvent, Actor actor) {
-                stage.dispose();
+            public void changed(ChangeEvent event, Actor actor) {
                 game.setScreen(new GameScreen(game));
             }
         });
-
-        TextButton optionsButton = new TextButton("Options", buttonStyle);
-        optionsButton.setPosition(50, Gdx.graphics.getHeight() - 370);
-        optionsButton.setSize(400, 50);
-        optionsButton.addListener(new ChangeListener() {
+        TextButton optionsButton = createButton("Options", 370, buttonStyle, new ChangeListener() {
             @Override
-            public void changed(ChangeEvent changeEvent, Actor actor) {
-                stage.dispose();
+            public void changed(ChangeEvent event, Actor actor) {
                 game.setScreen(new OptionsScreen(game));
             }
         });
-
-        TextButton quitButton = new TextButton("Quit", buttonStyle);
-        quitButton.setPosition(50, Gdx.graphics.getHeight() - 440);
-        quitButton.setSize(400, 50);
-        quitButton.addListener(new ChangeListener() {
+        TextButton quitButton = createButton("Quit", 440, buttonStyle, new ChangeListener() {
             @Override
-            public void changed(ChangeEvent changeEvent, Actor actor) {
+            public void changed(ChangeEvent event, Actor actor) {
                 Gdx.app.exit();
             }
         });
 
+        // Actors to stage
+        stage.addActor(label);
         stage.addActor(startButton);
         stage.addActor(optionsButton);
         stage.addActor(quitButton);
-
-        background = new Texture(Gdx.files.internal("ui/gamebg.png"));
-
     }
+
+    private TextButton createButton(String text, float yOffset, TextButton.TextButtonStyle buttonStyle, ChangeListener listener) {
+        TextButton button = new TextButton(text, buttonStyle);
+        button.getLabel().setFontScale(1.2f);
+        button.setPosition(50f, Gdx.graphics.getHeight() - yOffset);
+        button.setSize(400f, 50f);
+        button.addListener(listener);
+        return button;
+    }
+
 
     @Override
     public void show() {
@@ -87,6 +95,7 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
@@ -122,5 +131,6 @@ public class MainMenuScreen implements Screen {
         stage.dispose();
         skin.dispose();
         batch.dispose();
+        background.dispose();
     }
 }

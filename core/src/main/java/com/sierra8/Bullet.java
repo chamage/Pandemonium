@@ -5,25 +5,26 @@ import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Vector2;
 
 public class Bullet {
-    private Vector2 position;
-    private Vector2 velocity;
+    private final Vector2 position;
+    private final Vector2 velocity;
     private float distanceTraveled;
-    private float maxDistance;
-    private Circle hitbox;
+    private final float maxDistance;
+    private final Circle hitbox;
+
+    private final Vector2 tempVelocity = new Vector2();
 
     public Bullet(Vector2 position, Vector2 direction, float speed){
-        this.position = position;
-        this.velocity = direction.scl(speed);
+        this.position = new Vector2(position);
+        this.velocity = new Vector2(direction).nor().scl(speed);
         this.distanceTraveled = 0;
         this.maxDistance = 800f;
         this.hitbox = new Circle(position, 7);
     }
 
     public void update(float delta){
-        float displacement = velocity.len() * delta;
-        position.add(new Vector2(velocity).scl(delta));
-        distanceTraveled += displacement;
-
+        tempVelocity.set(velocity).scl(delta);
+        position.add(tempVelocity);
+        distanceTraveled += tempVelocity.len();
         hitbox.setPosition(position);
     }
 
@@ -36,7 +37,7 @@ public class Bullet {
     }
 
     public Vector2 getPosition() {
-        return  position;
+        return position.cpy();
     }
 
     public Circle getHitbox(){
