@@ -61,6 +61,7 @@ public class GameScreen implements Screen {
 
         enemyManager.setPlayerDeathListener(() -> {
             stopTrack();
+            dispose();
             game.setScreen(new PlayerDeathScreen(game));
         });
 
@@ -79,12 +80,13 @@ public class GameScreen implements Screen {
 
         grassTexture = new Texture(Gdx.files.internal("textures/grass.png"));
 
+        playTrack();
     }
 
     @Override
     public void show() {
         Gdx.input.setInputProcessor(null);
-        playTrack();
+        musicTracks[currentTrackIndex].setVolume(game.musicVolume);
     }
 
     @Override
@@ -186,7 +188,6 @@ public class GameScreen implements Screen {
 
     @Override
     public void hide() {
-        stopTrack();
     }
 
     @Override

@@ -46,7 +46,7 @@ public class OptionsScreen implements Screen {
 
         Slider volume = new Slider(0f, 1f, 0.1f, false, skin);
         volume.setPosition(200, Gdx.graphics.getHeight() - 190);
-        volume.setValue(1f);
+        volume.setValue(game.musicVolume);
         volume.setSize(500, 20);
         volume.addListener(new ChangeListener() {
             @Override
@@ -62,7 +62,7 @@ public class OptionsScreen implements Screen {
 
         Slider volume2 = new Slider(0f, 1f, 0.1f, false, skin);
         volume2.setPosition(200, Gdx.graphics.getHeight() - 240);
-        volume2.setValue(1f);
+        volume2.setValue(game.soundVolume);
         volume2.setSize(500, 20);
         volume2.addListener(new ChangeListener() {
             @Override

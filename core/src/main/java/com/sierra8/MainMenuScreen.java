@@ -20,6 +20,7 @@ public class MainMenuScreen implements Screen {
     private final Skin skin;
     private final SpriteBatch batch;
     private final Texture background;
+    private final Texture pansLogo;
 
     public MainMenuScreen(final SierraGame game) {
         this.game = game;
@@ -29,6 +30,7 @@ public class MainMenuScreen implements Screen {
         this.stage = new Stage(new ScreenViewport(), batch);
 
         background = new Texture("ui/gamebg.png");
+        pansLogo = new Texture("ui/panslogo.png");
 
         initializeUI();
     }
@@ -97,7 +99,7 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        ScreenRenderer.UiScreenRender(delta, batch, background, stage);
+        ScreenRenderer.UiScreenRender(delta, batch, background, stage, pansLogo);
     }
 
     @Override
