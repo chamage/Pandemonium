@@ -58,7 +58,7 @@ public class Player {
 
         handleMovement(delta);
         handleRotation(camera);
-        handleShooting(delta);
+        handleShooting(delta, camera);
         handleHitbox();
 
 
@@ -89,15 +89,19 @@ public class Player {
     private void handleRotation(Camera camera){
         mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
         camera.unproject(mousePos);
-        rotation = MathUtils.atan2(mousePos.y - position.y, mousePos.x - position.x) * MathUtils.radiansToDegrees;
+        float angle = MathUtils.atan2(mousePos.y - position.y, mousePos.x - position.x) * MathUtils.radiansToDegrees;
+
+        angle = (angle + 360) % 360;
+
+        rotation = Math.round(angle / 45) * 45 % 360;
     }
 
-    private void handleShooting(float delta){
+    private void handleShooting(float delta, Camera camera){
         shootTimer += delta;
 
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && shootTimer >= shootCooldown) {
             if (currentMag > 0) {
-                shootBullet();
+                shootBullet(camera);
                 shootTimer = 0;
             }
         }
@@ -107,14 +111,17 @@ public class Player {
         }
     }
 
-    private void shootBullet(){
+    private void shootBullet(Camera camera){
         currentMag--;
-        float bulletSpeed = 600f;
+        float bulletSpeed = 800f;
         float bulletX = position.x + MathUtils.cosDeg(rotation) * size;
         float bulletY = position.y + MathUtils.sinDeg(rotation) * size;
-        Vector2 direction = new Vector2(bulletX, bulletY).sub(position).nor();
 
-        Bullet bullet = new Bullet(new Vector2(bulletX, bulletY), direction, bulletSpeed);
+        mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+        camera.unproject(mousePos);
+        Vector2 shootingDirection = new Vector2(mousePos.x - position.x, mousePos.y - position.y).nor();
+
+        Bullet bullet = new Bullet(new Vector2(bulletX, bulletY), shootingDirection, bulletSpeed);
         bullets.add(bullet);
         if (pistolShootListener != null) {
             pistolShootListener.onPistolShot();

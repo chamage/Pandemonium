@@ -14,19 +14,26 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class PlayerDeathScreen implements Screen {
-
+    private final SierraGame game;
     private final Stage stage;
     private final Skin skin;
     private final SpriteBatch batch;
     private final Texture background;
 
     public PlayerDeathScreen(final SierraGame game) {
+        this.game = game;
 
         batch = new SpriteBatch();
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
-        stage = new Stage(new ScreenViewport(), batch);
+        this.stage = new Stage(new ScreenViewport(), batch);
 
         background = new Texture(Gdx.files.internal("ui/gamebg.png"));
+
+        initializeUI();
+
+    }
+
+    private void initializeUI(){
 
         Label.LabelStyle labelStyle = new Label.LabelStyle(SierraGame.fontMain, Color.WHITE);
         Label label = new Label("You died!", labelStyle);
@@ -62,6 +69,7 @@ public class PlayerDeathScreen implements Screen {
         stage.addActor(startButton);
         stage.addActor(quitButton);
     }
+
 
     @Override
     public void show() {

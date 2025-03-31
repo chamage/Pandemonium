@@ -16,13 +16,13 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class OptionsScreen implements Screen {
 
+    private final SierraGame game;
+    final Screen previousScreen;
     private final Stage stage;
     private final Skin skin;
     private final SpriteBatch batch;
     private final Texture background;
 
-    private final SierraGame game;
-    final Screen previousScreen;
 
     public OptionsScreen(final SierraGame game, Screen previousScreen) {
 

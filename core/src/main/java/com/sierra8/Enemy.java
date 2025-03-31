@@ -52,14 +52,17 @@ public class Enemy {
     }
 
     public void render(ShapeRenderer shape){
-        float rotation = direction.angleDeg();
+        float rawAngle = direction.angleDeg();
 
-        float tipX   = position.x + MathUtils.cosDeg(rotation) * size;
-        float tipY   = position.y + MathUtils.sinDeg(rotation) * size;
-        float leftX  = position.x + MathUtils.cosDeg(rotation + 135) * size;
-        float leftY  = position.y + MathUtils.sinDeg(rotation + 135) * size;
-        float rightX = position.x + MathUtils.cosDeg(rotation - 135) * size;
-        float rightY = position.y + MathUtils.sinDeg(rotation - 135) * size;
+        float snappedAngle = Math.round(rawAngle / 45) * 45 % 360;
+
+        float tipX   = position.x + MathUtils.cosDeg(snappedAngle) * size;
+        float tipY   = position.y + MathUtils.sinDeg(snappedAngle) * size;
+        float leftX  = position.x + MathUtils.cosDeg(snappedAngle + 135) * size;
+        float leftY  = position.y + MathUtils.sinDeg(snappedAngle + 135) * size;
+        float rightX = position.x + MathUtils.cosDeg(snappedAngle - 135) * size;
+        float rightY = position.y + MathUtils.sinDeg(snappedAngle - 135) * size;
+
 
         shape.setColor(Color.RED);
         shape.triangle(tipX, tipY, leftX, leftY, rightX, rightY);
