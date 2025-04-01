@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.MathUtils;
@@ -33,6 +35,7 @@ public class Player {
 
     private final Vector2 direction = new Vector2();
     private final Vector3 mousePos = new Vector3();
+    private Texture playerTexture;
 
     public Player(float x, float y){
         this.position = new Vector2(x, y);
@@ -48,6 +51,7 @@ public class Player {
         this.currentMag = magSize;
         this.reloadSpeed = DEFAULT_RELOAD_SPEED;
         this.enemiesKilled = 0;
+        this.playerTexture = new Texture("textures/one.png");
     }
 
     public void setPistolShootListener(PistolShootListener pistolShootListener) {
@@ -93,7 +97,7 @@ public class Player {
 
         angle = (angle + 360) % 360;
 
-        rotation = Math.round(angle / 45) * 45 % 360;
+        rotation = angle;
     }
 
     private void handleShooting(float delta, Camera camera){
@@ -137,17 +141,20 @@ public class Player {
         hitbox.setPosition(position);
     }
 
+    public void renderPlayer(SpriteBatch batch){
+        float playerWidth = 100;
+        float playerHeight = 100;
+        if (direction.x>0){
+            batch.draw(playerTexture, position.x - playerWidth/2, position.y - playerHeight/2, playerWidth, playerHeight);
+        }
+        else {
+            batch.draw(playerTexture, position.x + playerWidth/2, position.y - playerHeight/2, -playerWidth, playerHeight);
+        }
+    }
+
     public void render(ShapeRenderer shape){
 
-        float tipX   = position.x + MathUtils.cosDeg(rotation) * size;
-        float tipY   = position.y + MathUtils.sinDeg(rotation) * size;
-        float leftX  = position.x + MathUtils.cosDeg(rotation + 135) * size;
-        float leftY  = position.y + MathUtils.sinDeg(rotation + 135) * size;
-        float rightX = position.x + MathUtils.cosDeg(rotation - 135) * size;
-        float rightY = position.y + MathUtils.sinDeg(rotation - 135) * size;
-
-        shape.setColor(Color.BLUE);
-        shape.triangle(tipX, tipY, leftX, leftY, rightX, rightY);
+        shape.circle(hitbox.x, hitbox.y, hitbox.radius);
 
         shape.setColor(Color.GREEN);
         for (Bullet bullet : bullets){

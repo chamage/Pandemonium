@@ -151,6 +151,7 @@ public class GameScreen implements Screen {
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
+        player.renderPlayer(batch);
 
         String debug = "X: " + player.getPosition().x + " Y: " + player.getPosition().y
             + " Bullets: " + player.getBullets().size() + " Enemies: " + enemyManager.getEnemies().size() + " FPS: " + Gdx.graphics.getFramesPerSecond();
