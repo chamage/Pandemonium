@@ -35,7 +35,7 @@ public class Player {
 
     private final Vector2 direction = new Vector2();
     private final Vector3 mousePos = new Vector3();
-    private Texture playerTexture;
+    private final Texture playerTexture;
 
     public Player(float x, float y){
         this.position = new Vector2(x, y);
@@ -51,7 +51,7 @@ public class Player {
         this.currentMag = magSize;
         this.reloadSpeed = DEFAULT_RELOAD_SPEED;
         this.enemiesKilled = 0;
-        this.playerTexture = new Texture("textures/one.png");
+        this.playerTexture = new Texture("textures/one.PNG");
     }
 
     public void setPistolShootListener(PistolShootListener pistolShootListener) {
@@ -121,11 +121,10 @@ public class Player {
         float bulletX = position.x + MathUtils.cosDeg(rotation) * size;
         float bulletY = position.y + MathUtils.sinDeg(rotation) * size;
 
-        mousePos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-        camera.unproject(mousePos);
-        Vector2 shootingDirection = new Vector2(mousePos.x - position.x, mousePos.y - position.y).nor();
+        Vector2 direction = new Vector2(bulletX, bulletY).sub(position).nor();
 
-        Bullet bullet = new Bullet(new Vector2(bulletX, bulletY), shootingDirection, bulletSpeed);
+
+        Bullet bullet = new Bullet(new Vector2(bulletX, bulletY), direction, bulletSpeed);
         bullets.add(bullet);
         if (pistolShootListener != null) {
             pistolShootListener.onPistolShot();

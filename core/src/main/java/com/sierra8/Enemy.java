@@ -1,11 +1,8 @@
 package com.sierra8;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
 import java.util.ArrayList;
@@ -17,7 +14,7 @@ public class Enemy {
     private final float size;
     private boolean dead;
     private final Circle hitbox;
-    private Texture playerTexture;
+    private final Texture enemyTexture;
 
     public Enemy(float x, float y, float speed){
         this.position = new Vector2(x, y);
@@ -26,7 +23,7 @@ public class Enemy {
         this.size = 40f;
         this.dead = false;
         this.hitbox = new Circle(position, size*.6f);
-        this.playerTexture = new Texture("textures/enemy.png");
+        this.enemyTexture = new Texture("textures/enemy.PNG");
     }
 
     public void update(float delta, Vector2 playerPosition, ArrayList<Enemy> enemies){
@@ -60,10 +57,10 @@ public class Enemy {
         float playerWidth = 140;
         float playerHeight = 140;
         if (direction.x>0){
-            batch.draw(playerTexture, position.x - playerWidth/2 - 4, position.y - playerHeight/2 + 6, playerWidth, playerHeight);
+            batch.draw(enemyTexture, position.x - playerWidth/2 - 4, position.y - playerHeight/2 + 6, playerWidth, playerHeight);
         }
         else {
-            batch.draw(playerTexture, position.x + playerWidth/2 + 4, position.y - playerHeight/2 + 6, -playerWidth, playerHeight);
+            batch.draw(enemyTexture, position.x + playerWidth/2 + 4, position.y - playerHeight/2 + 6, -playerWidth, playerHeight);
         }
     }
 
