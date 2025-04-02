@@ -36,6 +36,8 @@ public class Player {
     private final Vector2 direction = new Vector2();
     private final Vector3 mousePos = new Vector3();
     private final Texture playerTexture;
+    private boolean facingRight = true;
+
 
     public Player(float x, float y){
         this.position = new Vector2(x, y);
@@ -52,6 +54,7 @@ public class Player {
         this.reloadSpeed = DEFAULT_RELOAD_SPEED;
         this.enemiesKilled = 0;
         this.playerTexture = new Texture("textures/one.PNG");
+
     }
 
     public void setPistolShootListener(PistolShootListener pistolShootListener) {
@@ -123,7 +126,6 @@ public class Player {
 
         Vector2 direction = new Vector2(bulletX, bulletY).sub(position).nor();
 
-
         Bullet bullet = new Bullet(new Vector2(bulletX, bulletY), direction, bulletSpeed);
         bullets.add(bullet);
         if (pistolShootListener != null) {
@@ -143,12 +145,19 @@ public class Player {
     public void renderPlayer(SpriteBatch batch){
         float playerWidth = 140;
         float playerHeight = 140;
-        if (direction.x>0){
-            batch.draw(playerTexture, position.x - playerWidth/2 - 6, position.y - playerHeight/2 + 10, playerWidth, playerHeight);
+
+        if (direction.x > 0) {
+            facingRight = true;
+        } else if (direction.x < 0) {
+            facingRight = false;
         }
-        else {
-            batch.draw(playerTexture, position.x + playerWidth/2 + 6, position.y - playerHeight/2 + 10, -playerWidth, playerHeight);
+
+        if (facingRight) {
+            batch.draw(playerTexture, position.x - playerWidth / 2 - 6, position.y - playerHeight / 2 + 10, playerWidth, playerHeight);
+        } else {
+            batch.draw(playerTexture, position.x + playerWidth / 2 + 6, position.y - playerHeight / 2 + 10, -playerWidth, playerHeight);
         }
+
     }
 
     public void renderBullets(ShapeRenderer shape){
