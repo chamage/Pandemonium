@@ -11,11 +11,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import java.util.Random;
-/*
-import com.badlogic.gdx.math.Vector2;
-import java.util.ArrayList;
-import java.util.List;
-*/
 
 public class GameScreen implements Screen {
 
@@ -76,7 +71,7 @@ public class GameScreen implements Screen {
             musicTracks[i] = Gdx.audio.newMusic(Gdx.files.internal("music/loop" + (i+1) + ".mp3"));
         }
 
-        shootSound = Gdx.audio.newSound(Gdx.files.internal("sound/shoot.ogg"));
+        shootSound = Gdx.audio.newSound(Gdx.files.internal("sound/shoot.mp3"));
 
         grassTexture = new Texture(Gdx.files.internal("textures/grass.png"));
 
@@ -228,22 +223,6 @@ public class GameScreen implements Screen {
         }
         batch.end();
     }
-
-    /*
-    private void saveGameData(){
-        Vector2 playerPosition = player.getPosition();
-        List<Vector2> enemyPositions = new ArrayList<>();
-        for (Enemy enemy : enemyManager.getEnemies()) {
-            enemyPositions.add(enemy.getPosition());
-        }
-        List<Vector2> bulletPositions = new ArrayList<>();
-        for (Bullet bullet : player.getBullets()) {
-            bulletPositions.add(bullet.getPosition());
-        }
-
-        GameData gameData = new GameData(playerPosition, enemyPositions, bulletPositions);
-    }
-    */
 
     private void playTrack(){
         if (musicTracks[currentTrackIndex].isPlaying()){stopTrack();}

@@ -56,7 +56,6 @@ public class Enemy {
     }
 
     public void render(SpriteBatch batch){
-        float rawAngle = direction.angleDeg();
 
         float playerWidth = 140;
         float playerHeight = 140;
