@@ -76,7 +76,7 @@ public class GameScreen implements Screen {
             musicTracks[i] = Gdx.audio.newMusic(Gdx.files.internal("music/loop" + (i+1) + ".mp3"));
         }
 
-        shootSound = Gdx.audio.newSound(Gdx.files.internal("sound/shoot.mp3"));
+        shootSound = Gdx.audio.newSound(Gdx.files.internal("sound/shoot.ogg"));
 
         grassTexture = new Texture(Gdx.files.internal("textures/grass.png"));
 
@@ -145,13 +145,15 @@ public class GameScreen implements Screen {
         shape.setProjectionMatrix(camera.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
         createBackground();
-        player.render(shape);
-        enemyManager.render(shape);
+        player.renderBullets(shape);
         shape.end();
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
+
+        enemyManager.render(batch);
         player.renderPlayer(batch);
+
 
         String debug = "X: " + player.getPosition().x + " Y: " + player.getPosition().y
             + " Bullets: " + player.getBullets().size() + " Enemies: " + enemyManager.getEnemies().size() + " FPS: " + Gdx.graphics.getFramesPerSecond();

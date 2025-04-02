@@ -1,6 +1,8 @@
 package com.sierra8;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.MathUtils;
@@ -15,14 +17,16 @@ public class Enemy {
     private final float size;
     private boolean dead;
     private final Circle hitbox;
+    private Texture playerTexture;
 
     public Enemy(float x, float y, float speed){
         this.position = new Vector2(x, y);
         this.direction = new Vector2();
         this.speed = speed;
-        this.size = 30f;
+        this.size = 40f;
         this.dead = false;
         this.hitbox = new Circle(position, size*.6f);
+        this.playerTexture = new Texture("textures/enemy.png");
     }
 
     public void update(float delta, Vector2 playerPosition, ArrayList<Enemy> enemies){
@@ -51,21 +55,17 @@ public class Enemy {
         }
     }
 
-    public void render(ShapeRenderer shape){
+    public void render(SpriteBatch batch){
         float rawAngle = direction.angleDeg();
 
-        float snappedAngle = Math.round(rawAngle / 45) * 45 % 360;
-
-        float tipX   = position.x + MathUtils.cosDeg(snappedAngle) * size;
-        float tipY   = position.y + MathUtils.sinDeg(snappedAngle) * size;
-        float leftX  = position.x + MathUtils.cosDeg(snappedAngle + 135) * size;
-        float leftY  = position.y + MathUtils.sinDeg(snappedAngle + 135) * size;
-        float rightX = position.x + MathUtils.cosDeg(snappedAngle - 135) * size;
-        float rightY = position.y + MathUtils.sinDeg(snappedAngle - 135) * size;
-
-
-        shape.setColor(Color.RED);
-        shape.triangle(tipX, tipY, leftX, leftY, rightX, rightY);
+        float playerWidth = 140;
+        float playerHeight = 140;
+        if (direction.x>0){
+            batch.draw(playerTexture, position.x - playerWidth/2 - 4, position.y - playerHeight/2 + 6, playerWidth, playerHeight);
+        }
+        else {
+            batch.draw(playerTexture, position.x + playerWidth/2 + 4, position.y - playerHeight/2 + 6, -playerWidth, playerHeight);
+        }
     }
 
     public boolean collidesWith(Bullet bullet) {

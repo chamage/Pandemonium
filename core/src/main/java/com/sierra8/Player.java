@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 public class Player {
 
-    private static final float DEFAULT_SIZE = 30f;
+    private static final float DEFAULT_SIZE = 40f;
     private static final float DEFAULT_RELOAD_SPEED = 3f;
 
     private final Vector2 position;
@@ -142,21 +142,19 @@ public class Player {
     }
 
     public void renderPlayer(SpriteBatch batch){
-        float playerWidth = 100;
-        float playerHeight = 100;
+        float playerWidth = 140;
+        float playerHeight = 140;
         if (direction.x>0){
-            batch.draw(playerTexture, position.x - playerWidth/2, position.y - playerHeight/2, playerWidth, playerHeight);
+            batch.draw(playerTexture, position.x - playerWidth/2 - 6, position.y - playerHeight/2 + 10, playerWidth, playerHeight);
         }
         else {
-            batch.draw(playerTexture, position.x + playerWidth/2, position.y - playerHeight/2, -playerWidth, playerHeight);
+            batch.draw(playerTexture, position.x + playerWidth/2 + 6, position.y - playerHeight/2 + 10, -playerWidth, playerHeight);
         }
     }
 
-    public void render(ShapeRenderer shape){
+    public void renderBullets(ShapeRenderer shape){
 
-        shape.circle(hitbox.x, hitbox.y, hitbox.radius);
-
-        shape.setColor(Color.GREEN);
+        shape.setColor(Color.RED);
         for (Bullet bullet : bullets){
             bullet.render(shape);
         }

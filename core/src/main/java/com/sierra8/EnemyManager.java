@@ -1,5 +1,6 @@
 package com.sierra8;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -92,9 +93,9 @@ public class EnemyManager {
         enemies.add(new Enemy(x, y, enemySpeed));
     }
 
-    public void render(ShapeRenderer shape){
+    public void render(SpriteBatch batch){
         for (Enemy enemy : enemies){
-            enemy.render(shape);
+            enemy.render(batch);
         }
     }
 
