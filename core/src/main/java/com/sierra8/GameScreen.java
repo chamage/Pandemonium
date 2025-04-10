@@ -52,7 +52,7 @@ public class GameScreen implements Screen {
         batch = new SpriteBatch();
 
         player = new Player(0, 0);
-        enemyManager = new EnemyManager(1f, 30, 220f);
+        enemyManager = new EnemyManager(1f, 30, 320f);
 
         enemyManager.setPlayerDeathListener(() -> {
             stopTrack();
@@ -160,12 +160,17 @@ public class GameScreen implements Screen {
         SierraGame.fontSmaller.draw(batch, ammoDisplay, player.getPosition().x - 30, player.getPosition().y - 30);
         batch.end();
 
-        /* DEBUG STUFF
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shape.setProjectionMatrix(camera.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
+        player.renderStaminaBar(shape);
+
+        /* DEBUG STUFF
         player.renderBoxes(shape);
         enemyManager.renderBoxes(shape);
-        shape.end();
          */
+        shape.end();
     }
 
     private void clearScreen(){

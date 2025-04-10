@@ -24,7 +24,6 @@ public class Player {
     private final float sizeBox;
     private final ArrayList<Bullet> bullets;
     private final Rectangle hitbox;
-    //private final Circle hitbox2;
     private final float shootCooldown;
     private float shootTimer;
     private int enemiesKilled;
@@ -32,6 +31,9 @@ public class Player {
     private int currentMag;
     private final float reloadSpeed;
     private PistolShootListener pistolShootListener;
+
+    private final float maxStamina;
+    private float stamina;
 
     private final Vector2 direction = new Vector2();
     private final Vector3 mousePos = new Vector3();
@@ -55,6 +57,8 @@ public class Player {
         this.reloadSpeed = DEFAULT_RELOAD_SPEED;
         this.enemiesKilled = 0;
         this.playerTexture = new Texture("textures/one.PNG");
+        this.maxStamina = 100f;
+        this.stamina = maxStamina;
 
     }
 
@@ -81,6 +85,7 @@ public class Player {
 
     private void handleMovement(float delta){
         direction.setZero();
+        float currentSpeed;
 
         if (Gdx.input.isKeyPressed(Input.Keys.W)) direction.y += 1;
         if (Gdx.input.isKeyPressed(Input.Keys.S)) direction.y -= 1;
@@ -88,8 +93,21 @@ public class Player {
         if (Gdx.input.isKeyPressed(Input.Keys.D)) direction.x += 1;
 
         if(direction.len2() > 0) {
-            direction.nor().scl(Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) ? speedSprint : speed);
+            if(Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) && stamina > 0f){
+                currentSpeed = speedSprint;
+                stamina -= 12f * delta;
+                if (stamina < 0f) stamina = 0f;
+            }
+            else{
+                currentSpeed = speed;
+            }
+            direction.nor().scl(currentSpeed);
             position.mulAdd(direction, delta);
+        }
+
+        if(stamina < maxStamina && !Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || direction.len2() <= 0f){
+            stamina += 10f * delta;
+            if (stamina > maxStamina) stamina = maxStamina;
         }
 
     }
@@ -168,6 +186,20 @@ public class Player {
         }
     }
 
+    public void renderStaminaBar(ShapeRenderer shape){
+        float x = position.x - Gdx.graphics.getWidth()/2f + 30;
+        float y = position.y - Gdx.graphics.getHeight()/2f + 30;;
+        float width = 300;
+        float height = 30;
+        shape.setColor(Color.DARK_GRAY);
+        shape.rect(x, y, width, height);
+
+        // Bar fill (e.g., green or red)
+        float staminaPercent = stamina / maxStamina;
+        shape.setColor(Color.LIME); // Or Color.RED if you want a tired vibe
+        shape.rect(x, y, width * staminaPercent, height);
+    }
+
     public void renderBoxes(ShapeRenderer shape){
         shape.setColor(75, 60, 255, 1);
         shape.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
@@ -193,5 +225,6 @@ public class Player {
         enemiesKilled++;
     }
     public int getCurrentMag(){return currentMag; }
+    public float getCurrentStamina(){return stamina; }
 
 }

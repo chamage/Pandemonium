@@ -17,7 +17,6 @@ public class Enemy {
     private final float size;
     private final float sizeBox;
     private boolean dead;
-    //private final Circle hitbox2;
     private final Rectangle hitbox;
     private final Texture enemyTexture;
 
