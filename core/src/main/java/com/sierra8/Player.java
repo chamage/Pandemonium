@@ -7,15 +7,13 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Circle;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.*;
+
 import java.util.ArrayList;
 
 public class Player {
 
-    private static final float DEFAULT_SIZE = 40f;
+    private static final float DEFAULT_SIZE = 140f;
     private static final float DEFAULT_RELOAD_SPEED = 3f;
 
     private final Vector2 position;
@@ -23,8 +21,10 @@ public class Player {
     private final float speedSprint;
     private float rotation;
     private final float size;
+    private final float sizeBox;
     private final ArrayList<Bullet> bullets;
-    private final Circle hitbox;
+    private final Rectangle hitbox;
+    //private final Circle hitbox2;
     private final float shootCooldown;
     private float shootTimer;
     private int enemiesKilled;
@@ -45,8 +45,9 @@ public class Player {
         this.speedSprint = 400f;
         this.rotation = 0;
         this.size = DEFAULT_SIZE;
+        this.sizeBox = (float)(size*.3);
         this.bullets = new ArrayList<>();
-        this.hitbox = new Circle(position, size*.6f);
+        this.hitbox = new Rectangle(position.x-sizeBox/2, position.y-sizeBox/2, sizeBox, sizeBox);
         this.shootCooldown = 0.6f;
         this.shootTimer = 1f;
         this.magSize = 12;
@@ -121,8 +122,8 @@ public class Player {
     private void shootBullet(Camera camera){
         currentMag--;
         float bulletSpeed = 800f;
-        float bulletX = position.x + MathUtils.cosDeg(rotation) * size;
-        float bulletY = position.y + MathUtils.sinDeg(rotation) * size;
+        float bulletX = position.x + MathUtils.cosDeg(rotation) * sizeBox;
+        float bulletY = position.y + MathUtils.sinDeg(rotation) * sizeBox;
 
         Vector2 direction = new Vector2(bulletX, bulletY).sub(position).nor();
 
@@ -131,7 +132,6 @@ public class Player {
         if (pistolShootListener != null) {
             pistolShootListener.onPistolShot();
         }
-
     }
 
     private void reload(){
@@ -139,12 +139,12 @@ public class Player {
     }
 
     private void handleHitbox(){
-        hitbox.setPosition(position);
+        hitbox.setPosition(position.x-sizeBox/2, position.y-sizeBox/2);
     }
 
     public void renderPlayer(SpriteBatch batch){
-        float playerWidth = 140;
-        float playerHeight = 140;
+        float playerWidth = size;
+        float playerHeight = size;
 
         if (direction.x > 0) {
             facingRight = true;
@@ -168,6 +168,11 @@ public class Player {
         }
     }
 
+    public void renderBoxes(ShapeRenderer shape){
+        shape.setColor(75, 60, 255, 1);
+        shape.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+    }
+
     public Vector2 getPosition(){
         return position.cpy();
     }
@@ -177,7 +182,7 @@ public class Player {
     }
 
 
-    public Circle getHitbox(){
+    public Rectangle getHitbox(){
         return hitbox;
     }
 

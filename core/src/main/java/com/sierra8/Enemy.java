@@ -2,7 +2,10 @@ package com.sierra8;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 import java.util.ArrayList;
@@ -12,17 +15,20 @@ public class Enemy {
     private final Vector2 direction;
     private final float speed;
     private final float size;
+    private final float sizeBox;
     private boolean dead;
-    private final Circle hitbox;
+    //private final Circle hitbox2;
+    private final Rectangle hitbox;
     private final Texture enemyTexture;
 
     public Enemy(float x, float y, float speed){
         this.position = new Vector2(x, y);
         this.direction = new Vector2();
         this.speed = speed;
-        this.size = 40f;
+        this.size = 140f;
+        this.sizeBox = (float)(size*.3);
         this.dead = false;
-        this.hitbox = new Circle(position, size*.6f);
+        this.hitbox = new Rectangle(position.x-sizeBox/2, position.y-sizeBox/2, sizeBox, (float)(sizeBox*1.5));
         this.enemyTexture = new Texture("textures/enemy.PNG");
     }
 
@@ -34,7 +40,7 @@ public class Enemy {
             position.add(direction);
         }
 
-        hitbox.setPosition(position);
+        hitbox.setPosition(position.x-sizeBox/2, position.y-sizeBox/2);
 
         handleCollisionWithOthers(delta, enemies);
     }
@@ -44,18 +50,18 @@ public class Enemy {
             if (other == this) continue;
 
             float distance = position.dst(other.position);
-            if (distance < 38f && distance > 0f) {
-                Vector2 repulsion = new Vector2(position).sub(other.position).nor().scl(160f * delta);
+            if (distance < 52f && distance > 0f) {
+                Vector2 repulsion = new Vector2(position).sub(other.position).nor().scl(180f * delta);
                 position.add(repulsion);
-                hitbox.setPosition(position);
+                hitbox.setPosition(position.x-sizeBox/2, position.y-sizeBox/2);
             }
         }
     }
 
     public void render(SpriteBatch batch){
 
-        float playerWidth = 140;
-        float playerHeight = 140;
+        float playerWidth = size;
+        float playerHeight = size;
         if (direction.x>0){
             batch.draw(enemyTexture, position.x - playerWidth/2 - 4, position.y - playerHeight/2 + 6, playerWidth, playerHeight);
         }
@@ -64,8 +70,13 @@ public class Enemy {
         }
     }
 
+    public void renderBoxes(ShapeRenderer shape){
+        shape.setColor(75, 60, 255, 1);
+        shape.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+    }
+
     public boolean collidesWith(Bullet bullet) {
-        return hitbox.overlaps(bullet.getHitbox());
+        return Intersector.overlaps(bullet.getHitbox(), hitbox);
     }
 
     public boolean collidesWith(Player player) {
@@ -84,7 +95,7 @@ public class Enemy {
         return position;
     }
 
-    public Circle getHitbox(){
+    public Rectangle getHitbox(){
         return hitbox;
     }
 }

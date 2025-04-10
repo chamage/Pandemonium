@@ -1,5 +1,6 @@
 package com.sierra8;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Vector2;
@@ -33,6 +34,7 @@ public class Bullet {
     }
 
     public void render(ShapeRenderer shape){
+        shape.setColor(Color.RED);
         shape.circle(position.x, position.y, hitbox.radius);
     }
 

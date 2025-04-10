@@ -159,6 +159,13 @@ public class GameScreen implements Screen {
         String ammoDisplay = player.getCurrentMag() + " / 12";
         SierraGame.fontSmaller.draw(batch, ammoDisplay, player.getPosition().x - 30, player.getPosition().y - 30);
         batch.end();
+
+        /* DEBUG STUFF
+        shape.begin(ShapeRenderer.ShapeType.Filled);
+        player.renderBoxes(shape);
+        enemyManager.renderBoxes(shape);
+        shape.end();
+         */
     }
 
     private void clearScreen(){

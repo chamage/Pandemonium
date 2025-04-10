@@ -99,6 +99,12 @@ public class EnemyManager {
         }
     }
 
+    public void renderBoxes(ShapeRenderer shape){
+        for (Enemy enemy : enemies){
+            enemy.renderBoxes(shape);
+        }
+    }
+
     public ArrayList<Enemy> getEnemies(){
         return enemies;
     }
