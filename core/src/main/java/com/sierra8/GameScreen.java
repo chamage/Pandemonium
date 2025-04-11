@@ -52,7 +52,7 @@ public class GameScreen implements Screen {
         batch = new SpriteBatch();
 
         player = new Player(0, 0);
-        enemyManager = new EnemyManager(1f, 30, 320f);
+        enemyManager = new EnemyManager(1f, 30, 316f);
 
         enemyManager.setPlayerDeathListener(() -> {
             stopTrack();
@@ -222,9 +222,12 @@ public class GameScreen implements Screen {
         if (offsetX < 0) offsetX += textureWidth;
         if (offsetY < 0) offsetY += textureHeight;
 
+        int tilesX = (int)Math.ceil(camera.viewportWidth / textureWidth) + 2;
+        int tilesY = (int)Math.ceil(camera.viewportHeight / textureHeight) + 2;
+
         batch.begin();
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x < tilesX - 1; x++) {
+            for (int y = -1; y < tilesY - 1; y++) {
                 batch.draw(
                     grassTexture,
                     camX - offsetX + x * textureWidth,

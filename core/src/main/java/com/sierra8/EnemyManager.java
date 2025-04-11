@@ -1,5 +1,6 @@
 package com.sierra8;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
@@ -86,10 +87,11 @@ public class EnemyManager {
     }
 
     private void spawnEnemy(Vector2 playerPosition){
-        final float spawnDistance = 650f;
+        final float spawnDistanceX = Gdx.graphics.getWidth();
+        final float spawnDistanceY = Gdx.graphics.getHeight();
         float angle = MathUtils.random(360f);
-        float x = playerPosition.x + MathUtils.cosDeg(angle) * spawnDistance;
-        float y = playerPosition.y + MathUtils.sinDeg(angle) * spawnDistance;
+        float x = playerPosition.x + MathUtils.cosDeg(angle) * spawnDistanceX;
+        float y = playerPosition.y + MathUtils.sinDeg(angle) * spawnDistanceY;
         enemies.add(new Enemy(x, y, enemySpeed));
     }
 

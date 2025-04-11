@@ -24,16 +24,21 @@ public class Player {
     private final float sizeBox;
     private final ArrayList<Bullet> bullets;
     private final Rectangle hitbox;
-    private final float shootCooldown;
-    private float shootTimer;
     private int enemiesKilled;
-    private final float maxMana;
-    private float mana;
     private final float reloadSpeed;
     private PistolShootListener pistolShootListener;
 
+    private final float maxMana;
+    private float mana;
+
     private final float maxStamina;
     private float stamina;
+
+    private final float shootCooldown;
+    private float shootTimer;
+
+    private final float specialCooldown;
+    private float specialTimer;
 
     private final Vector2 direction = new Vector2();
     private final Vector3 mousePos = new Vector3();
@@ -59,6 +64,8 @@ public class Player {
         this.playerTexture = new Texture("textures/one.PNG");
         this.maxStamina = 100f;
         this.stamina = maxStamina;
+        this.specialCooldown = 2f;
+        this.specialTimer = 2f;
 
     }
 
@@ -70,7 +77,7 @@ public class Player {
 
         handleMovement(delta);
         handleRotation(camera);
-        handleShooting(delta, camera);
+        handleShooting(delta);
         handleHitbox();
 
 
@@ -122,13 +129,23 @@ public class Player {
         rotation = angle;
     }
 
-    private void handleShooting(float delta, Camera camera){
+    private void handleShooting(float delta){
         shootTimer += delta;
+        specialTimer += delta;
 
+        //normal attack
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && shootTimer >= shootCooldown) {
             if (mana >= 2f) {
-                shootBullet(camera);
+                shootBullet();
                 shootTimer = 0;
+            }
+        }
+
+        //special attack (aoe type of)
+        if (Gdx.input.isKeyJustPressed(Input.Keys.E) && specialTimer >= specialCooldown) {
+            if (mana >= 10f) {
+                specialAttack(18);
+                specialTimer = 0;
             }
         }
 
@@ -138,7 +155,7 @@ public class Player {
         }
     }
 
-    private void shootBullet(Camera camera){
+    private void shootBullet(){
         mana -= 2f;
         float bulletSpeed = 800f;
         float bulletX = position.x + MathUtils.cosDeg(rotation) * sizeBox;
@@ -152,6 +169,28 @@ public class Player {
             pistolShootListener.onPistolShot();
         }
     }
+
+    public void specialAttack(int bulletCount) {
+        mana -= 10f;
+
+        float bulletSpeed = 600f;
+        float angleStep = 360f / bulletCount;
+
+        for (int i = 0; i < bulletCount; i++) {
+            float angle = i * angleStep;
+            float bulletX = position.x + MathUtils.cosDeg(angle) * sizeBox;
+            float bulletY = position.y + MathUtils.sinDeg(angle) * sizeBox;
+
+            Vector2 direction = new Vector2(MathUtils.cosDeg(angle), MathUtils.sinDeg(angle)).nor();
+            Bullet bullet = new Bullet(new Vector2(bulletX, bulletY), direction, bulletSpeed);
+            bullets.add(bullet);
+        }
+
+        if (pistolShootListener != null) {
+            pistolShootListener.onPistolShot();
+        }
+    }
+
 
     private void handleHitbox(){
         hitbox.setPosition(position.x-sizeBox/2, position.y-sizeBox/2);
