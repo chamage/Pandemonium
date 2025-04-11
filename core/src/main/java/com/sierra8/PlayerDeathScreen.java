@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 public class PlayerDeathScreen implements Screen {
     private final SierraGame game;
@@ -30,23 +31,27 @@ public class PlayerDeathScreen implements Screen {
         background = new Texture(Gdx.files.internal("ui/gamebg.png"));
 
         initializeUI();
-
     }
 
-    private void initializeUI(){
-
+    private void initializeUI() {
+        // Label Style
         Label.LabelStyle labelStyle = new Label.LabelStyle(SierraGame.fontMain, Color.WHITE);
         Label label = new Label("You died!", labelStyle);
         label.setFontScale(3);
-        label.setPosition(50, Gdx.graphics.getHeight() - 200);
-        stage.addActor(label);
 
+        // Layout using Table
+        Table table = new Table();
+        table.setFillParent(true); // Make the table take the full screen
+        table.top().padTop(100);  // Add padding from top
 
+        // Center the label
+        table.add(label).center().padBottom(50).row();
+
+        // Restart Button
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
         buttonStyle.font = SierraGame.fontMain;
 
         TextButton startButton = new TextButton("Restart", buttonStyle);
-        startButton.setPosition(50, Gdx.graphics.getHeight() - 300);
         startButton.setSize(400, 50);
         startButton.addListener(new ChangeListener() {
             @Override
@@ -56,8 +61,8 @@ public class PlayerDeathScreen implements Screen {
             }
         });
 
+        // Quit Button
         TextButton quitButton = new TextButton("Quit", buttonStyle);
-        quitButton.setPosition(50, Gdx.graphics.getHeight() - 360);
         quitButton.setSize(400, 50);
         quitButton.addListener(new ChangeListener() {
             @Override
@@ -66,10 +71,13 @@ public class PlayerDeathScreen implements Screen {
             }
         });
 
-        stage.addActor(startButton);
-        stage.addActor(quitButton);
-    }
+        // Add buttons to table with spacing
+        table.add(startButton).width(400).height(50).padBottom(20).row();
+        table.add(quitButton).width(400).height(50).padBottom(20).row();
 
+        // Add table to stage
+        stage.addActor(table);
+    }
 
     @Override
     public void show() {
@@ -87,19 +95,13 @@ public class PlayerDeathScreen implements Screen {
     }
 
     @Override
-    public void pause() {
-
-    }
+    public void pause() {}
 
     @Override
-    public void resume() {
-
-    }
+    public void resume() {}
 
     @Override
-    public void hide() {
-
-    }
+    public void hide() {}
 
     @Override
     public void dispose() {

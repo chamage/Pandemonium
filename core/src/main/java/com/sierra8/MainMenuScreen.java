@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 public class MainMenuScreen implements Screen {
 
@@ -40,13 +41,21 @@ public class MainMenuScreen implements Screen {
         Label.LabelStyle labelStyle = new Label.LabelStyle(SierraGame.fontMain, Color.WHITE);
         Label label = new Label("SIERRA8", labelStyle);
         label.setFontScale(4f);
-        label.setPosition(40, Gdx.graphics.getHeight() - 200f);
 
         // Button setup
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
         buttonStyle.font = SierraGame.fontMain;
 
-        TextButton startButton = createButton("Start Game", 300, buttonStyle, new ChangeListener() {
+        // Using a Table for layout
+        Table table = new Table();
+        table.setFillParent(true);  // Make the table take the full screen
+        table.left().top().padTop(60).padLeft(50);  // Align everything to the left with padding from top and left
+
+        // Add elements to table
+        table.add(label).left().padBottom(30).row();  // Add label with space at the bottom
+
+        // Create buttons and add them to the table with spacing between them
+        TextButton startButton = createButton("Start Game", buttonStyle, new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (game.gameScreen == null) {
@@ -55,46 +64,45 @@ public class MainMenuScreen implements Screen {
                 game.setScreen(game.gameScreen);
             }
         });
-        TextButton optionsButton = createButton("Options", 370, buttonStyle, new ChangeListener() {
+
+        TextButton optionsButton = createButton("Options", buttonStyle, new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (game.optionsScreen == null || game.optionsScreen.previousScreen != MainMenuScreen.this) {
                     game.optionsScreen = new OptionsScreen(game, MainMenuScreen.this);
                 }
                 game.setScreen(game.optionsScreen);
-
             }
         });
-        TextButton quitButton = createButton("Quit", 440, buttonStyle, new ChangeListener() {
+
+        TextButton quitButton = createButton("Quit", buttonStyle, new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 Gdx.app.exit();
             }
         });
 
-        // Actors to stage
-        stage.addActor(label);
-        stage.addActor(startButton);
-        stage.addActor(optionsButton);
-        stage.addActor(quitButton);
+        // Add buttons to table with equal spacing between them
+        table.add(startButton).width(400).height(50).padBottom(15).row();
+        table.add(optionsButton).width(400).height(50).padBottom(15).row();
+        table.add(quitButton).width(400).height(50).padBottom(15).row();
+
+        // Add table to stage
+        stage.addActor(table);
     }
 
-    private TextButton createButton(String text, float yOffset, TextButton.TextButtonStyle buttonStyle, ChangeListener listener) {
+    private TextButton createButton(String text, TextButton.TextButtonStyle buttonStyle, ChangeListener listener) {
         TextButton button = new TextButton(text, buttonStyle);
         button.getLabel().setFontScale(1.2f);
-        button.setPosition(50f, Gdx.graphics.getHeight() - yOffset);
-        button.setSize(400f, 50f);
         button.addListener(listener);
         return button;
     }
-
 
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
         stage.clear();
         initializeUI();
-
     }
 
     @Override
@@ -108,19 +116,13 @@ public class MainMenuScreen implements Screen {
     }
 
     @Override
-    public void pause() {
-
-    }
+    public void pause() {}
 
     @Override
-    public void resume() {
-
-    }
+    public void resume() {}
 
     @Override
-    public void hide() {
-
-    }
+    public void hide() {}
 
     @Override
     public void dispose() {
