@@ -156,8 +156,6 @@ public class GameScreen implements Screen {
             camera.position.y + camera.viewportHeight / 2 - 10);
         String killStreak = "Enemies killed: " + player.getEnemiesKilled();
         SierraGame.fontSmaller.draw(batch, killStreak, player.getPosition().x + 30, player.getPosition().y + 30);
-        String ammoDisplay = player.getCurrentMag() + " / 12";
-        SierraGame.fontSmaller.draw(batch, ammoDisplay, player.getPosition().x - 30, player.getPosition().y - 30);
         batch.end();
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -165,6 +163,7 @@ public class GameScreen implements Screen {
         shape.setProjectionMatrix(camera.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
         player.renderStaminaBar(shape);
+        player.renderManaBar(shape);
 
         /* DEBUG STUFF
         player.renderBoxes(shape);

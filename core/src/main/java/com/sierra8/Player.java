@@ -27,8 +27,8 @@ public class Player {
     private final float shootCooldown;
     private float shootTimer;
     private int enemiesKilled;
-    private final int magSize;
-    private int currentMag;
+    private final float maxMana;
+    private float mana;
     private final float reloadSpeed;
     private PistolShootListener pistolShootListener;
 
@@ -50,10 +50,10 @@ public class Player {
         this.sizeBox = (float)(size*.3);
         this.bullets = new ArrayList<>();
         this.hitbox = new Rectangle(position.x-sizeBox/2, position.y-sizeBox/2, sizeBox, sizeBox);
-        this.shootCooldown = 0.6f;
+        this.shootCooldown = 0.4f;
         this.shootTimer = 1f;
-        this.magSize = 12;
-        this.currentMag = magSize;
+        this.maxMana = 100f;
+        this.mana = maxMana;
         this.reloadSpeed = DEFAULT_RELOAD_SPEED;
         this.enemiesKilled = 0;
         this.playerTexture = new Texture("textures/one.PNG");
@@ -126,19 +126,20 @@ public class Player {
         shootTimer += delta;
 
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && shootTimer >= shootCooldown) {
-            if (currentMag > 0) {
+            if (mana >= 2f) {
                 shootBullet(camera);
                 shootTimer = 0;
             }
         }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.R) && currentMag < magSize){
-            reload();
+        if(mana < maxMana){
+            mana +=  2f * delta;
+            if (mana > maxMana) mana = maxMana;
         }
     }
 
     private void shootBullet(Camera camera){
-        currentMag--;
+        mana -= 2f;
         float bulletSpeed = 800f;
         float bulletX = position.x + MathUtils.cosDeg(rotation) * sizeBox;
         float bulletY = position.y + MathUtils.sinDeg(rotation) * sizeBox;
@@ -150,10 +151,6 @@ public class Player {
         if (pistolShootListener != null) {
             pistolShootListener.onPistolShot();
         }
-    }
-
-    private void reload(){
-        currentMag = magSize;
     }
 
     private void handleHitbox(){
@@ -194,10 +191,22 @@ public class Player {
         shape.setColor(Color.DARK_GRAY);
         shape.rect(x, y, width, height);
 
-        // Bar fill (e.g., green or red)
         float staminaPercent = stamina / maxStamina;
-        shape.setColor(Color.LIME); // Or Color.RED if you want a tired vibe
+        shape.setColor(Color.LIME);
         shape.rect(x, y, width * staminaPercent, height);
+    }
+
+    public void renderManaBar(ShapeRenderer shape){
+        float width = 300;
+        float height = 30;
+        float x = position.x + Gdx.graphics.getWidth()/2f - 30 - width;
+        float y = position.y - Gdx.graphics.getHeight()/2f + 30;;
+        shape.setColor(Color.DARK_GRAY);
+        shape.rect(x, y, width, height);
+
+        float manaPercent = mana / maxMana;
+        shape.setColor(Color.ROYAL);
+        shape.rect(x, y, width * manaPercent, height);
     }
 
     public void renderBoxes(ShapeRenderer shape){
@@ -224,7 +233,7 @@ public class Player {
     public void enemyKilled(){
         enemiesKilled++;
     }
-    public int getCurrentMag(){return currentMag; }
+    public float getCurrentMana(){return mana; }
     public float getCurrentStamina(){return stamina; }
 
 }
