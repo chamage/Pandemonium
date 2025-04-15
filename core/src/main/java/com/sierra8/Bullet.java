@@ -1,5 +1,6 @@
 package com.sierra8;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
@@ -18,7 +19,7 @@ public class Bullet {
         this.position = new Vector2(position);
         this.velocity = new Vector2(direction).nor().scl(speed);
         this.distanceTraveled = 0;
-        this.maxDistance = 800f;
+        this.maxDistance = Gdx.graphics.getWidth() + 50f;
         this.hitbox = new Circle(position, 7);
     }
 

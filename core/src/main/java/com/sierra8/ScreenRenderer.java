@@ -34,4 +34,11 @@ public class ScreenRenderer {
         stage.act(Math.min(delta, 1 / 30f));
         stage.draw();
     }
+
+    static void noBGScreenRender(float delta, SpriteBatch batch, Stage stage) {
+
+
+        stage.act(Math.min(delta, 1 / 30f));
+        stage.draw();
+    }
 }

@@ -26,8 +26,19 @@ public class SierraGame extends Game {
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = 48;
         parameter.color = Color.WHITE;
+        parameter.borderWidth = 2f;
+        parameter.borderColor = Color.BLACK;
+        parameter.shadowOffsetX = 2;
+        parameter.shadowOffsetY = 2;
+        parameter.shadowColor = new Color(0, 0, 0, 0.5f);
         fontMain = generator.generateFont(parameter);
         parameter.size = 20;
+        parameter.color = Color.WHITE;
+        parameter.borderWidth = 2f;
+        parameter.borderColor = Color.BLACK;
+        parameter.shadowOffsetX = 2;
+        parameter.shadowOffsetY = 2;
+        parameter.shadowColor = new Color(0, 0, 0, 0.5f);
         fontSmaller = generator.generateFont(parameter);
         generator.dispose();
 

@@ -3,6 +3,7 @@ package com.sierra8;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -20,6 +21,8 @@ public class PlayerDeathScreen implements Screen {
     private final Skin skin;
     private final SpriteBatch batch;
     private final Texture background;
+    private final Texture goblin;
+    private final Texture peter;
 
     public PlayerDeathScreen(final SierraGame game) {
         this.game = game;
@@ -29,6 +32,8 @@ public class PlayerDeathScreen implements Screen {
         this.stage = new Stage(new ScreenViewport(), batch);
 
         background = new Texture(Gdx.files.internal("ui/gamebg.png"));
+        goblin = new Texture(Gdx.files.internal("textures/goblin.png"));
+        peter = new Texture(Gdx.files.internal("textures/death.png"));
 
         initializeUI();
     }
@@ -86,7 +91,28 @@ public class PlayerDeathScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        ScreenRenderer.UiScreenRender(delta, batch, background, stage);
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        float goblinOgWidth = 253f;
+        float goblinOgHeight = 309f;
+
+        float peterOgWidth = 932f;
+        float peterOgHeight = 587f;
+
+        float screenHeight = Gdx.graphics.getHeight();
+        float scaleGoblin = screenHeight / goblinOgHeight;
+        float scalePeter = screenHeight/2f / peterOgHeight;
+
+        float scaledWidthGoblin = goblinOgWidth * scaleGoblin;
+        float scaledWidthPeter = peterOgWidth * scalePeter;
+        float scaledHeight = screenHeight;
+        batch.begin();
+        batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        batch.draw(peter, scaledWidthGoblin - scaledWidthGoblin /3.5f, scaledHeight/3f, scaledWidthPeter, scaledHeight/2f);
+        batch.draw(goblin, 0, 0, scaledWidthGoblin, scaledHeight);
+        batch.end();
+
+        ScreenRenderer.noBGScreenRender(delta, batch, stage);
     }
 
     @Override

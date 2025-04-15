@@ -40,6 +40,9 @@ public class Player {
     private final float specialCooldown;
     private float specialTimer;
 
+    private final float teleportCooldown;
+    private float teleportTimer;
+
     private final Vector2 direction = new Vector2();
     private final Vector3 mousePos = new Vector3();
     private final Texture playerTexture;
@@ -66,6 +69,8 @@ public class Player {
         this.stamina = maxStamina;
         this.specialCooldown = 2f;
         this.specialTimer = 2f;
+        this.teleportCooldown = 3f;
+        this.teleportTimer = 3f;
 
     }
 
@@ -77,7 +82,7 @@ public class Player {
 
         handleMovement(delta);
         handleRotation(camera);
-        handleShooting(delta);
+        handleShooting(delta, camera);
         handleHitbox();
 
 
@@ -129,9 +134,10 @@ public class Player {
         rotation = angle;
     }
 
-    private void handleShooting(float delta){
+    private void handleShooting(float delta, Camera camera){
         shootTimer += delta;
         specialTimer += delta;
+        teleportTimer += delta;
 
         //normal attack
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && shootTimer >= shootCooldown) {
@@ -146,6 +152,14 @@ public class Player {
             if (mana >= 10f) {
                 specialAttack(18);
                 specialTimer = 0;
+            }
+        }
+
+        //teleport spell
+        if (Gdx.input.isKeyJustPressed(Input.Keys.Q) && teleportTimer >= teleportCooldown) {
+            if (mana >= 15f) {
+                teleportAction(camera);
+                teleportTimer = 0;
             }
         }
 
@@ -191,6 +205,17 @@ public class Player {
         }
     }
 
+    public void teleportAction(Camera camera) {
+        mana -= 15f;
+
+        Vector3 mouseScreen = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
+
+        Vector3 worldCoords = camera.unproject(mouseScreen);
+
+        position.set(worldCoords.x, worldCoords.y);
+
+    }
+
 
     private void handleHitbox(){
         hitbox.setPosition(position.x-sizeBox/2, position.y-sizeBox/2);
@@ -223,8 +248,8 @@ public class Player {
     }
 
     public void renderStaminaBar(ShapeRenderer shape){
-        float x = position.x - Gdx.graphics.getWidth()/2f + 30;
-        float y = position.y - Gdx.graphics.getHeight()/2f + 30;;
+        float x = position.x - Gdx.graphics.getWidth()/2f + 6;
+        float y = position.y - Gdx.graphics.getHeight()/2f + 6;;
         float width = 300;
         float height = 30;
         shape.setColor(Color.DARK_GRAY);
@@ -238,8 +263,8 @@ public class Player {
     public void renderManaBar(ShapeRenderer shape){
         float width = 300;
         float height = 30;
-        float x = position.x + Gdx.graphics.getWidth()/2f - 30 - width;
-        float y = position.y - Gdx.graphics.getHeight()/2f + 30;;
+        float x = position.x + Gdx.graphics.getWidth()/2f - 6 - width;
+        float y = position.y - Gdx.graphics.getHeight()/2f + 6;;
         shape.setColor(Color.DARK_GRAY);
         shape.rect(x, y, width, height);
 
@@ -248,8 +273,38 @@ public class Player {
         shape.rect(x, y, width * manaPercent, height);
     }
 
+    public void renderAbilities(ShapeRenderer shape){
+        //E attack
+        float size = 50;
+        float eX = position.x + Gdx.graphics.getWidth()/2f - 6 - size;
+        float eY = position.y + Gdx.graphics.getHeight()/2f - 6 - size;
+        shape.setColor(Color.DARK_GRAY);
+        shape.rect(eX, eY, size, size);
+
+        //Q teleport
+        float qX = position.x + Gdx.graphics.getWidth()/2f - 6 - size;
+        float qY = position.y + Gdx.graphics.getHeight()/2f - 12 - size*2;
+        shape.setColor(Color.DARK_GRAY);
+        shape.rect(qX, qY, size, size);
+
+        float eCooldownPercent = Math.min(1f, specialTimer / specialCooldown);
+        float qCooldownPercent = Math.min(1f, teleportTimer / teleportCooldown);
+
+        float eCooldownHeight = size * (1f - eCooldownPercent);
+        float qCooldownHeight = size * (1f - qCooldownPercent);
+
+        shape.setColor(Color.BLACK);
+        if (eCooldownPercent < 1f) {
+            shape.rect(eX, eY + eCooldownHeight, size, size - eCooldownHeight);
+        }
+        if (qCooldownPercent < 1f) {
+            shape.rect(qX, qY + qCooldownHeight, size, size - qCooldownHeight);
+        }
+
+    }
+
     public void renderBoxes(ShapeRenderer shape){
-        shape.setColor(75, 60, 255, 1);
+        shape.setColor(75, 60, 255, 1f);
         shape.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
     }
 

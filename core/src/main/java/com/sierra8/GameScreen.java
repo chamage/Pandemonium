@@ -10,7 +10,16 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+
 import java.util.Random;
+
 
 public class GameScreen implements Screen {
 
@@ -35,6 +44,10 @@ public class GameScreen implements Screen {
     // Game components
     private Player player;
     private EnemyManager enemyManager;
+
+
+    private Stage pauseStage;
+    private Skin skin;
 
     public GameScreen(final SierraGame game){
         this.game = game;
@@ -63,6 +76,48 @@ public class GameScreen implements Screen {
         enemyManager.setEnemyDeathListener(() -> player.enemyKilled());
 
         player.setPistolShootListener(() -> shootSound.play(game.soundVolume));
+
+        skin = new Skin(Gdx.files.internal("ui/uiskin.json")); // or your own skin
+        TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
+        buttonStyle.font = SierraGame.fontMain;
+
+        pauseStage = new Stage(new ScreenViewport());
+        Gdx.input.setInputProcessor(null); // no input to the stage unless paused
+
+        Table table = new Table();
+        table.setFillParent(true);
+        pauseStage.addActor(table);
+
+        TextButton resumeButton = new TextButton("Resume", buttonStyle);
+        TextButton optionsButton = new TextButton("Options", buttonStyle);
+        TextButton quitButton = new TextButton("Quit", buttonStyle);
+
+        resumeButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                resume();
+            }
+        });
+
+        optionsButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (game.optionsScreen == null || game.optionsScreen.previousScreen != GameScreen.this) {
+                    game.optionsScreen = new OptionsScreen(game, GameScreen.this);
+                }
+                game.setScreen(game.optionsScreen);
+            }
+        });
+        quitButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Gdx.app.exit();
+            }
+        });
+
+        table.add(resumeButton).width(300).height(50).pad(10).row();
+        table.add(optionsButton).width(300).height(50).pad(10).row();
+        table.add(quitButton).width(300).height(50).pad(10);
     }
 
     private void loadAssets(){
@@ -80,21 +135,14 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(null);
+        Gdx.input.setInputProcessor(paused ? pauseStage : null);
+        Gdx.input.justTouched();
+        Gdx.input.setCursorCatched(false);
         musicTracks[currentTrackIndex].setVolume(game.musicVolume);
     }
 
     @Override
     public void render(float delta) {
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.O)) {
-            if (game.optionsScreen == null || game.optionsScreen.previousScreen != this) {
-                game.optionsScreen = new OptionsScreen(game, this);
-            }
-            game.setScreen(game.optionsScreen);
-        }
-
-
         clearScreen();
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)){
@@ -130,10 +178,12 @@ public class GameScreen implements Screen {
             camera.viewportWidth, camera.viewportHeight);
         shape.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
-        batch.setProjectionMatrix(camera.combined);
-        batch.begin();
-        SierraGame.fontMain.draw(batch, "PAUSED", camera.position.x - 50, camera.position.y + 10);
-        batch.end();
+
+        camera.position.set(player.getPosition().x, player.getPosition().y, 0);
+        camera.update();
+
+        pauseStage.act(Gdx.graphics.getDeltaTime());
+        pauseStage.draw();
     }
 
     private void renderGame(){
@@ -158,12 +208,15 @@ public class GameScreen implements Screen {
         SierraGame.fontSmaller.draw(batch, killStreak, player.getPosition().x + 30, player.getPosition().y + 30);
         batch.end();
 
+
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shape.setProjectionMatrix(camera.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
         player.renderStaminaBar(shape);
         player.renderManaBar(shape);
+        player.renderAbilities(shape);
+        Gdx.gl.glDisable(GL20.GL_BLEND);
 
         /* DEBUG STUFF
         player.renderBoxes(shape);
@@ -183,16 +236,19 @@ public class GameScreen implements Screen {
         camera.viewportHeight = height;
         camera.position.set(width / 2f, height / 2f, 0);
         camera.update();
+        pauseStage.getViewport().update(width, height, true);
     }
 
     @Override
     public void pause() {
         paused = true;
+        Gdx.input.setInputProcessor(pauseStage);
     }
 
     @Override
     public void resume() {
         paused = false;
+        Gdx.input.setInputProcessor(null);
     }
 
     @Override

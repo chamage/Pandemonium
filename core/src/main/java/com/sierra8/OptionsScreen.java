@@ -87,7 +87,9 @@ public class OptionsScreen implements Screen {
             public void changed(ChangeEvent event, Actor actor) {
                 if (fullscreenCheck.isChecked()) {
                     Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
+                    resolutionDropdown.setDisabled(true);
                 } else {
+                    resolutionDropdown.setDisabled(false);
                     Gdx.graphics.setWindowedMode(1280, 720);
                 }
             }
@@ -138,6 +140,11 @@ public class OptionsScreen implements Screen {
         Gdx.input.setInputProcessor(stage);
         stage.clear();
         initializeUI();
+        if (fullscreenCheck.isChecked()) {
+            resolutionDropdown.setDisabled(true);
+        } else {
+            resolutionDropdown.setDisabled(false);
+        }
     }
 
     @Override
