@@ -10,7 +10,7 @@ import com.badlogic.gdx.math.Vector2;
 
 import java.util.ArrayList;
 
-public class Enemy {
+public class Enemy implements RenderableEntity {
     private final Vector2 position;
     private final Vector2 direction;
     private final float speed;
@@ -19,6 +19,11 @@ public class Enemy {
     private boolean dead;
     private final Rectangle hitbox;
     private final Texture enemyTexture;
+
+    @Override
+    public float getRenderY() {
+        return position.y;
+    }
 
     public Enemy(float x, float y, float speed){
         this.position = new Vector2(x, y);

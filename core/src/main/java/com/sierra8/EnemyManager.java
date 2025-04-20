@@ -18,6 +18,10 @@ public class EnemyManager {
     private PlayerDeathListener playerDeathListener;
     private EnemyDeathListener enemyDeathListener;
 
+    private boolean delayTargeting = false;
+    private float delayTimer = 0f;
+    private Vector2 delayedTargetPos = null;
+
     public EnemyManager(float spawnCooldown, int maxEnemies, float enemySpeed){
         enemies = new ArrayList<>();
         this.spawnCooldown = spawnCooldown;
@@ -34,7 +38,20 @@ public class EnemyManager {
         this.enemyDeathListener = enemyDeathListener;
     }
 
+    public void startTargetDelay(Vector2 oldPos, float delayTime) {
+        this.delayTargeting = true;
+        this.delayedTargetPos = oldPos;
+        this.delayTimer = delayTime;
+    }
+
     public void update(float delta, Player player, ArrayList<Bullet> bullets){
+        if (delayTargeting) {
+            delayTimer -= delta;
+            if (delayTimer <= 0f) {
+                delayTargeting = false;
+                delayedTargetPos = null;
+            }
+        }
         spawnTimer += delta;
 
         if (spawnTimer >= spawnCooldown && enemies.size() < maxEnemies) {
@@ -48,7 +65,8 @@ public class EnemyManager {
 
         for (int i = enemies.size() - 1; i >= 0; i--) {
             Enemy enemy = enemies.get(i);
-            enemy.update(delta, player.getPosition(), enemies);
+            Vector2 targetPos = delayTargeting ? delayedTargetPos : player.getPosition();
+            enemy.update(delta, targetPos, enemies);
 
             // Check collision with player
             if (enemy.collidesWith(player)) {

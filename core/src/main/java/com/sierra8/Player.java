@@ -5,13 +5,15 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.*;
 
 import java.util.ArrayList;
 
-public class Player {
+public class Player implements RenderableEntity {
 
     private static final float DEFAULT_SIZE = 140f;
     private static final float DEFAULT_RELOAD_SPEED = 3f;
@@ -45,9 +47,28 @@ public class Player {
 
     private final Vector2 direction = new Vector2();
     private final Vector3 mousePos = new Vector3();
-    private final Texture playerTexture;
     private boolean facingRight = true;
 
+    private Animation<TextureRegion> walkAnimation;
+    private Texture walkSheet;
+    private Animation<TextureRegion> idleAnimation;
+    private Texture idleSheet;
+    private float animationTimer;
+
+    private TeleportListener teleportListener;
+    public void setTeleportListener(TeleportListener teleportListener) {
+        this.teleportListener = teleportListener;
+    }
+
+    @Override
+    public float getRenderY() {
+        return position.y;
+    }
+
+    @Override
+    public void render(SpriteBatch batch) {
+        renderPlayer(batch);
+    }
 
     public Player(float x, float y){
         this.position = new Vector2(x, y);
@@ -64,13 +85,40 @@ public class Player {
         this.mana = maxMana;
         this.reloadSpeed = DEFAULT_RELOAD_SPEED;
         this.enemiesKilled = 0;
-        this.playerTexture = new Texture("textures/one.PNG");
+
+        this.walkSheet = new Texture("textures/walkSheet.png");
+        TextureRegion[][] walkTmp = TextureRegion.split(walkSheet,
+            walkSheet.getWidth() / 8,
+            walkSheet.getHeight());
+
+        TextureRegion[] walkFrames = new TextureRegion[8];
+
+        for (int i = 0; i < 8; i++) {
+            walkFrames[i] = walkTmp[0][i];
+        }
+
+        this.idleSheet = new Texture("textures/idleSheet.png");
+        TextureRegion[][] idleTmp = TextureRegion.split(idleSheet,
+            idleSheet.getWidth() / 6,
+            idleSheet.getHeight());
+
+        walkAnimation = new Animation<TextureRegion>(0.1f, walkFrames);
+
+        TextureRegion[] idleFrames = new TextureRegion[6];
+        for (int i = 0; i < 6; i++) {
+            idleFrames[i] = idleTmp[0][i];
+        }
+
+        idleAnimation = new Animation<TextureRegion>(0.1f, idleFrames);
+        this.animationTimer = 0f;
+
         this.maxStamina = 100f;
         this.stamina = maxStamina;
         this.specialCooldown = 2f;
         this.specialTimer = 2f;
         this.teleportCooldown = 3f;
         this.teleportTimer = 3f;
+
 
     }
 
@@ -80,6 +128,7 @@ public class Player {
 
     public void update(float delta, Camera camera){
 
+        animationTimer += delta;
         handleMovement(delta);
         handleRotation(camera);
         handleShooting(delta, camera);
@@ -129,9 +178,7 @@ public class Player {
         camera.unproject(mousePos);
         float angle = MathUtils.atan2(mousePos.y - position.y, mousePos.x - position.x) * MathUtils.radiansToDegrees;
 
-        angle = (angle + 360) % 360;
-
-        rotation = angle;
+        rotation = (angle + 360) % 360;
     }
 
     private void handleShooting(float delta, Camera camera){
@@ -208,10 +255,12 @@ public class Player {
     public void teleportAction(Camera camera) {
         mana -= 15f;
 
+        Vector2 oldPos = new Vector2(position);
         Vector3 mouseScreen = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
-
         Vector3 worldCoords = camera.unproject(mouseScreen);
-
+        if (teleportListener != null) {
+            teleportListener.onTeleport(oldPos);
+        }
         position.set(worldCoords.x, worldCoords.y);
 
     }
@@ -231,12 +280,17 @@ public class Player {
             facingRight = false;
         }
 
-        if (facingRight) {
-            batch.draw(playerTexture, position.x - playerWidth / 2 - 6, position.y - playerHeight / 2 + 10, playerWidth, playerHeight);
-        } else {
-            batch.draw(playerTexture, position.x + playerWidth / 2 + 6, position.y - playerHeight / 2 + 10, -playerWidth, playerHeight);
+
+        Animation<TextureRegion> currentAnimation = direction.len2() > 0 ? walkAnimation : idleAnimation;
+        TextureRegion currentFrame = currentAnimation.getKeyFrame(animationTimer, true);
+
+        if (!facingRight && !currentFrame.isFlipX()) {
+            currentFrame.flip(true, false);
+        } else if (facingRight && currentFrame.isFlipX()) {
+            currentFrame.flip(true, false);
         }
 
+        batch.draw(currentFrame, position.x - playerWidth / 2, position.y - playerHeight / 2, playerWidth, playerHeight);
     }
 
     public void renderBullets(ShapeRenderer shape){

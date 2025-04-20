@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import java.util.Random;
@@ -49,6 +50,8 @@ public class GameScreen implements Screen {
     private Stage pauseStage;
     private Skin skin;
 
+    Array<RenderableEntity> renderables = new Array<>();
+
     public GameScreen(final SierraGame game){
         this.game = game;
 
@@ -77,12 +80,14 @@ public class GameScreen implements Screen {
 
         player.setPistolShootListener(() -> shootSound.play(game.soundVolume));
 
-        skin = new Skin(Gdx.files.internal("ui/uiskin.json")); // or your own skin
+        player.setTeleportListener(oldPos -> enemyManager.startTargetDelay(oldPos, .4f));
+
+        skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
         buttonStyle.font = SierraGame.fontMain;
 
         pauseStage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(null); // no input to the stage unless paused
+        Gdx.input.setInputProcessor(null);
 
         Table table = new Table();
         table.setFillParent(true);
@@ -161,6 +166,14 @@ public class GameScreen implements Screen {
     }
 
     private void update(float delta){
+        renderables.clear();
+        renderables.add(player);
+        for(Enemy enemy : enemyManager.getEnemies()){
+            if (!enemy.isDead()){
+                renderables.add(enemy);
+            }
+        }
+        renderables.sort((a, b) -> Float.compare(b.getRenderY(), a.getRenderY()));
         player.update(delta, camera);
         enemyManager.update(delta, player, player.getBullets());
         camera.position.set(player.getPosition().x, player.getPosition().y, 0);
@@ -196,9 +209,9 @@ public class GameScreen implements Screen {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
 
-        enemyManager.render(batch);
-        player.renderPlayer(batch);
-
+        for (RenderableEntity entity : renderables){
+            entity.render(batch);
+        }
 
         String debug = "X: " + player.getPosition().x + " Y: " + player.getPosition().y
             + " Bullets: " + player.getBullets().size() + " Enemies: " + enemyManager.getEnemies().size() + " FPS: " + Gdx.graphics.getFramesPerSecond();
@@ -209,14 +222,11 @@ public class GameScreen implements Screen {
         batch.end();
 
 
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shape.setProjectionMatrix(camera.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
         player.renderStaminaBar(shape);
         player.renderManaBar(shape);
         player.renderAbilities(shape);
-        Gdx.gl.glDisable(GL20.GL_BLEND);
 
         /* DEBUG STUFF
         player.renderBoxes(shape);
