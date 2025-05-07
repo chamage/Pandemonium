@@ -55,6 +55,9 @@ public class Player implements RenderableEntity {
     private Texture idleSheet;
     private float animationTimer;
 
+    private Texture qAbility;
+    private Texture eAbility;
+
     private TeleportListener teleportListener;
     public void setTeleportListener(TeleportListener teleportListener) {
         this.teleportListener = teleportListener;
@@ -119,6 +122,8 @@ public class Player implements RenderableEntity {
         this.teleportCooldown = 3f;
         this.teleportTimer = 3f;
 
+        this.eAbility = new Texture("textures/e_ability.png");
+        this.qAbility = new Texture("textures/q_ability.png");
 
     }
 
@@ -327,19 +332,17 @@ public class Player implements RenderableEntity {
         shape.rect(x, y, width * manaPercent, height);
     }
 
-    public void renderAbilities(ShapeRenderer shape){
+    public void renderAbilities(SpriteBatch batch, Camera camera){
         //E attack
         float size = 50;
         float eX = position.x + Gdx.graphics.getWidth()/2f - 6 - size;
         float eY = position.y + Gdx.graphics.getHeight()/2f - 6 - size;
-        shape.setColor(Color.DARK_GRAY);
-        shape.rect(eX, eY, size, size);
+        batch.draw(eAbility, eX, eY, size, size);
 
         //Q teleport
         float qX = position.x + Gdx.graphics.getWidth()/2f - 6 - size;
         float qY = position.y + Gdx.graphics.getHeight()/2f - 12 - size*2;
-        shape.setColor(Color.DARK_GRAY);
-        shape.rect(qX, qY, size, size);
+        batch.draw(qAbility ,qX, qY, size, size);
 
         float eCooldownPercent = Math.min(1f, specialTimer / specialCooldown);
         float qCooldownPercent = Math.min(1f, teleportTimer / teleportCooldown);
@@ -347,6 +350,9 @@ public class Player implements RenderableEntity {
         float eCooldownHeight = size * (1f - eCooldownPercent);
         float qCooldownHeight = size * (1f - qCooldownPercent);
 
+        ShapeRenderer shape = new ShapeRenderer();
+        shape.setProjectionMatrix(camera.combined);
+        shape.begin(ShapeRenderer.ShapeType.Filled);
         shape.setColor(Color.BLACK);
         if (eCooldownPercent < 1f) {
             shape.rect(eX, eY + eCooldownHeight, size, size - eCooldownHeight);
@@ -354,6 +360,7 @@ public class Player implements RenderableEntity {
         if (qCooldownPercent < 1f) {
             shape.rect(qX, qY + qCooldownHeight, size, size - qCooldownHeight);
         }
+        shape.end();
 
     }
 

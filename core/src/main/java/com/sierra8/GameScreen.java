@@ -219,6 +219,8 @@ public class GameScreen implements Screen {
             camera.position.y + camera.viewportHeight / 2 - 10);
         String killStreak = "Enemies killed: " + player.getEnemiesKilled();
         SierraGame.fontSmaller.draw(batch, killStreak, player.getPosition().x + 30, player.getPosition().y + 30);
+
+        player.renderAbilities(batch, camera);
         batch.end();
 
 
@@ -226,7 +228,6 @@ public class GameScreen implements Screen {
         shape.begin(ShapeRenderer.ShapeType.Filled);
         player.renderStaminaBar(shape);
         player.renderManaBar(shape);
-        player.renderAbilities(shape);
 
         /* DEBUG STUFF
         player.renderBoxes(shape);
