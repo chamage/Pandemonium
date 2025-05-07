@@ -1,7 +1,9 @@
 package com.sierra8;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
@@ -18,7 +20,11 @@ public class Enemy implements RenderableEntity {
     private final float sizeBox;
     private boolean dead;
     private final Rectangle hitbox;
-    private final Texture enemyTexture;
+    private boolean facingRight = true;
+
+    private Animation<TextureRegion> walkAnimation;
+    private Texture walkSheet;
+    private float animationTimer;
 
     @Override
     public float getRenderY() {
@@ -29,14 +35,27 @@ public class Enemy implements RenderableEntity {
         this.position = new Vector2(x, y);
         this.direction = new Vector2();
         this.speed = speed;
-        this.size = 140f;
-        this.sizeBox = (float)(size*.3);
+        this.size = 480f;
+        this.sizeBox = (float)(140*.3);
         this.dead = false;
         this.hitbox = new Rectangle(position.x-sizeBox/2, position.y-sizeBox/2, sizeBox, (float)(sizeBox*1.5));
-        this.enemyTexture = new Texture("textures/enemy.PNG");
+
+        this.walkSheet = new Texture("textures/enemySheet.png");
+        TextureRegion[][] walkTmp = TextureRegion.split(walkSheet,
+            walkSheet.getWidth() / 8,
+            walkSheet.getHeight());
+
+        TextureRegion[] walkFrames = new TextureRegion[8];
+
+        for (int i = 0; i < 8; i++) {
+            walkFrames[i] = walkTmp[0][i];
+        }
+        walkAnimation = new Animation<TextureRegion>(0.1f, walkFrames);
+        this.animationTimer = 0f;
     }
 
     public void update(float delta, Vector2 playerPosition, ArrayList<Enemy> enemies){
+        animationTimer += delta;
         direction.set(playerPosition).sub(position);
 
         if (direction.len2() > 0.01f) {
@@ -66,12 +85,23 @@ public class Enemy implements RenderableEntity {
 
         float playerWidth = size;
         float playerHeight = size;
-        if (direction.x>0){
-            batch.draw(enemyTexture, position.x - playerWidth/2 - 4, position.y - playerHeight/2 + 6, playerWidth, playerHeight);
+
+        if (direction.x > 0) {
+            facingRight = true;
+        } else if (direction.x < 0) {
+            facingRight = false;
         }
-        else {
-            batch.draw(enemyTexture, position.x + playerWidth/2 + 4, position.y - playerHeight/2 + 6, -playerWidth, playerHeight);
+
+        TextureRegion currentFrame = walkAnimation.getKeyFrame(animationTimer, true);
+
+        if (!facingRight && !currentFrame.isFlipX()) {
+            currentFrame.flip(true, false);
+        } else if (facingRight && currentFrame.isFlipX()) {
+            currentFrame.flip(true, false);
         }
+
+        batch.draw(currentFrame, position.x - playerWidth / 2, position.y - playerHeight / 2, playerWidth, playerHeight);
+
     }
 
     public void renderBoxes(ShapeRenderer shape){
