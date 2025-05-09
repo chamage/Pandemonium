@@ -81,7 +81,7 @@ public class Player implements RenderableEntity {
         this.size = DEFAULT_SIZE;
         this.sizeBox = (float)(size*.3);
         this.bullets = new ArrayList<>();
-        this.hitbox = new Rectangle(position.x-sizeBox/2, position.y-sizeBox/2, sizeBox, sizeBox);
+        this.hitbox = new Rectangle(position.x-sizeBox/2-4, position.y-sizeBox/2-18, sizeBox, sizeBox*1.4f);
         this.shootCooldown = 0.4f;
         this.shootTimer = 1f;
         this.maxMana = 100f;
@@ -272,7 +272,12 @@ public class Player implements RenderableEntity {
 
 
     private void handleHitbox(){
-        hitbox.setPosition(position.x-sizeBox/2, position.y-sizeBox/2);
+        if (facingRight){
+            hitbox.setPosition(position.x-sizeBox/2+6, position.y-sizeBox/2-18);
+        }
+        else {
+            hitbox.setPosition(position.x-sizeBox/2-6, position.y-sizeBox/2-18);
+        }
     }
 
     public void renderPlayer(SpriteBatch batch){
@@ -311,11 +316,11 @@ public class Player implements RenderableEntity {
         float y = position.y - Gdx.graphics.getHeight()/2f + 6;;
         float width = 300;
         float height = 30;
-        shape.setColor(Color.DARK_GRAY);
+        shape.setColor(new Color(0, 0, 0, 0.5f));
         shape.rect(x, y, width, height);
 
         float staminaPercent = stamina / maxStamina;
-        shape.setColor(Color.LIME);
+        shape.setColor(new Color(80/255f,205/255f,80/255f, 0.9f));
         shape.rect(x, y, width * staminaPercent, height);
     }
 
@@ -324,17 +329,17 @@ public class Player implements RenderableEntity {
         float height = 30;
         float x = position.x + Gdx.graphics.getWidth()/2f - 6 - width;
         float y = position.y - Gdx.graphics.getHeight()/2f + 6;;
-        shape.setColor(Color.DARK_GRAY);
+        shape.setColor(new Color(0, 0, 0, 0.5f));
         shape.rect(x, y, width, height);
 
         float manaPercent = mana / maxMana;
-        shape.setColor(Color.ROYAL);
+        shape.setColor(new Color(30/255f, 30/255f, 205/255f, 0.9f));
         shape.rect(x, y, width * manaPercent, height);
     }
 
-    public void renderAbilities(SpriteBatch batch, Camera camera){
+    public void renderAbilities(SpriteBatch batch){
         //E attack
-        float size = 50;
+        float size = 80;
         float eX = position.x + Gdx.graphics.getWidth()/2f - 6 - size;
         float eY = position.y + Gdx.graphics.getHeight()/2f - 6 - size;
         batch.draw(eAbility, eX, eY, size, size);
@@ -343,6 +348,17 @@ public class Player implements RenderableEntity {
         float qX = position.x + Gdx.graphics.getWidth()/2f - 6 - size;
         float qY = position.y + Gdx.graphics.getHeight()/2f - 12 - size*2;
         batch.draw(qAbility ,qX, qY, size, size);
+    }
+
+    public void renderAbilitiesUsed(ShapeRenderer shape){
+        shape.setColor(new Color(0, 0, 0, .8F));
+        float size = 80;
+        float eX = position.x + Gdx.graphics.getWidth()/2f - 6 - size;
+        float eY = position.y + Gdx.graphics.getHeight()/2f - 6 - size;
+
+        //Q teleport
+        float qX = position.x + Gdx.graphics.getWidth()/2f - 6 - size;
+        float qY = position.y + Gdx.graphics.getHeight()/2f - 12 - size*2;
 
         float eCooldownPercent = Math.min(1f, specialTimer / specialCooldown);
         float qCooldownPercent = Math.min(1f, teleportTimer / teleportCooldown);
@@ -350,22 +366,17 @@ public class Player implements RenderableEntity {
         float eCooldownHeight = size * (1f - eCooldownPercent);
         float qCooldownHeight = size * (1f - qCooldownPercent);
 
-        ShapeRenderer shape = new ShapeRenderer();
-        shape.setProjectionMatrix(camera.combined);
-        shape.begin(ShapeRenderer.ShapeType.Filled);
-        shape.setColor(Color.BLACK);
         if (eCooldownPercent < 1f) {
             shape.rect(eX, eY + eCooldownHeight, size, size - eCooldownHeight);
         }
         if (qCooldownPercent < 1f) {
             shape.rect(qX, qY + qCooldownHeight, size, size - qCooldownHeight);
         }
-        shape.end();
 
     }
 
     public void renderBoxes(ShapeRenderer shape){
-        shape.setColor(75, 60, 255, 1f);
+        shape.setColor(75, 60, 255, .4f);
         shape.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
     }
 

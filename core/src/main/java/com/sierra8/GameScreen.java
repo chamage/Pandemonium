@@ -45,7 +45,7 @@ public class GameScreen implements Screen {
     // Game components
     private Player player;
     private EnemyManager enemyManager;
-
+    private ObjectManager objectManager;
 
     private Stage pauseStage;
     private Skin skin;
@@ -69,6 +69,7 @@ public class GameScreen implements Screen {
 
         player = new Player(0, 0);
         enemyManager = new EnemyManager(1f, 30, 316f);
+        objectManager = new ObjectManager(.1f, 10);
 
         enemyManager.setPlayerDeathListener(() -> {
             stopTrack();
@@ -173,9 +174,13 @@ public class GameScreen implements Screen {
                 renderables.add(enemy);
             }
         }
+        for (Object object : objectManager.getObjects()) {
+            renderables.add(object);
+        }
         renderables.sort((a, b) -> Float.compare(b.getRenderY(), a.getRenderY()));
         player.update(delta, camera);
         enemyManager.update(delta, player, player.getBullets());
+        objectManager.update(delta, player);
         camera.position.set(player.getPosition().x, player.getPosition().y, 0);
         camera.update();
     }
@@ -190,7 +195,6 @@ public class GameScreen implements Screen {
             camera.position.y - camera.viewportHeight / 2,
             camera.viewportWidth, camera.viewportHeight);
         shape.end();
-        Gdx.gl.glDisable(GL20.GL_BLEND);
 
         camera.position.set(player.getPosition().x, player.getPosition().y, 0);
         camera.update();
@@ -220,19 +224,23 @@ public class GameScreen implements Screen {
         String killStreak = "Enemies killed: " + player.getEnemiesKilled();
         SierraGame.fontSmaller.draw(batch, killStreak, player.getPosition().x + 30, player.getPosition().y + 30);
 
-        player.renderAbilities(batch, camera);
+        player.renderAbilities(batch);
         batch.end();
 
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
         shape.setProjectionMatrix(camera.combined);
         shape.begin(ShapeRenderer.ShapeType.Filled);
         player.renderStaminaBar(shape);
         player.renderManaBar(shape);
+        player.renderAbilitiesUsed(shape);
 
         /* DEBUG STUFF
         player.renderBoxes(shape);
         enemyManager.renderBoxes(shape);
          */
+
         shape.end();
     }
 
