@@ -22,12 +22,15 @@ public class EnemyManager {
     private float delayTimer = 0f;
     private Vector2 delayedTargetPos = null;
 
+    private final float despawnRadius;
+
     public EnemyManager(float spawnCooldown, int maxEnemies, float enemySpeed){
         enemies = new ArrayList<>();
         this.spawnCooldown = spawnCooldown;
         this.spawnTimer = 0;
         this.maxEnemies = maxEnemies;
         this.enemySpeed = enemySpeed;
+        this.despawnRadius = Gdx.graphics.getWidth()*2f;
     }
 
     public void setPlayerDeathListener(PlayerDeathListener playerDeathListener) {
@@ -45,6 +48,7 @@ public class EnemyManager {
     }
 
     public void update(float delta, Player player, ArrayList<Bullet> bullets){
+        Vector2 playerPosition = player.getPosition();
         if (delayTargeting) {
             delayTimer -= delta;
             if (delayTimer <= 0f) {
@@ -61,33 +65,38 @@ public class EnemyManager {
 
         // Create a temporary list to track bullets that should be removed
         List<Bullet> bulletsToRemove = null;
-
-
         for (int i = enemies.size() - 1; i >= 0; i--) {
             Enemy enemy = enemies.get(i);
-            Vector2 targetPos = delayTargeting ? delayedTargetPos : player.getPosition();
-            enemy.update(delta, targetPos, enemies);
 
-            // Check collision with player
+            // Despawn check
+            if (enemy.getPosition().dst(playerPosition) > despawnRadius) {
+                enemies.remove(i);
+                continue; // Skip further processing for this despawned enemy
+            }
+
+            Vector2 targetPos = delayTargeting ? delayedTargetPos : playerPosition;
+            // Pass worldObjects to enemy's update method
+            enemy.update(delta, targetPos, enemies, ObjectManager.getObjects());
+
+
             if (enemy.collidesWith(player)) {
                 if (playerDeathListener != null) {
                     playerDeathListener.onPlayerDeath();
                 }
             }
 
-            // Check collision with bullets safely
             for (Bullet bullet : bullets) {
                 if (enemy.collidesWith(bullet)) {
                     if (enemyDeathListener != null) {
                         enemyDeathListener.onEnemyDeath();
                     }
-                    enemy.markDead();
+                    enemy.markDead(); // Enemy will be removed in the next check if dead
                     if (bulletsToRemove == null) {
                         bulletsToRemove = new ArrayList<>();
                     }
                     bulletsToRemove.add(bullet);
-                    break;
-
+                    // Important: Do not break here if a bullet can hit multiple enemies.
+                    // If a bullet should only hit one, then break. Current logic seems to allow one hit per enemy.
                 }
             }
 
@@ -96,12 +105,9 @@ public class EnemyManager {
             }
         }
 
-        // Remove bullets after iteration to avoid concurrent modification
         if (bulletsToRemove != null) {
             bullets.removeAll(bulletsToRemove);
         }
-
-
     }
 
     private void spawnEnemy(Vector2 playerPosition){
@@ -127,5 +133,31 @@ public class EnemyManager {
 
     public ArrayList<Enemy> getEnemies(){
         return enemies;
+    }
+
+    public int getStateCount(String state){
+        int chasingCount = 0;
+        int wanderingCount = 0;
+        int retreatCount = 0;
+        int groupCount = 0;
+        for (Enemy enemy : enemies){
+            if (enemy.getChasing() == 0) wanderingCount++;
+            else if (enemy.getChasing() == 1) chasingCount++;
+            else if (enemy.getChasing() == 2) groupCount++;
+            else if (enemy.getChasing() == 3) retreatCount++;
+        }
+
+        switch (state){
+            case "wandering":
+                return wanderingCount;
+            case "chasing":
+                return chasingCount;
+            case "group":
+                 return groupCount;
+            case "retreat":
+                 return retreatCount;
+            default:
+                 return 0;
+        }
     }
 }

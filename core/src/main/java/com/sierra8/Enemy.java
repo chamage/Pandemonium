@@ -5,17 +5,27 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Enemy implements RenderableEntity {
+
+    private enum EnemyState {
+        WANDERING,
+        CHASING,
+        RETREATING,
+        FORMING_GROUP
+    }
+
     private final Vector2 position;
-    private final Vector2 direction;
-    private final float speed;
+    private final Vector2 currentVelocity;
+    private final float baseSpeed;
+    private float currentSpeed;
     private final float size;
     private final float sizeBox;
     private boolean dead;
@@ -26,95 +36,305 @@ public class Enemy implements RenderableEntity {
     private Texture walkSheet;
     private float animationTimer;
 
+    private EnemyState currentState;
+    private final Vector2 wanderTargetPosition;
+    private float stateTimer; // Generic timer for various states (wander, retreat, grouping timeout)
+
+    // Wandering
+    private final float wanderRadius = 200f;
+    private final float maxWanderTime = 5f;
+    private final float minWanderTime = 2f;
+
+    // Engagement Radius
+    private final float detectionRadius = 700f; // Max distance to notice player
+    private final float aggroRadius = 450f;     // Distance to switch to CHASING
+    private final float attackRange = 60f;      // Very close range
+    private final float deAggroRadius = 1000f;  // Distance to disengage from CHASING/RETREATING
+    private final float contactAggroRadius = 70f; // Ensures chase sticks if very close
+
+    // Weaving (in CHASING state)
+    private final float timeToNextWeave = 1.0f;
+    private float weaveFactor;
+    private final float maxWeaveFactor = 1.0f;
+    private final float weaveInfluence = 0.3f;
+
+    // Retreating
+    private static final float RETREAT_DURATION = 1.5f;       // How long to retreat
+    private static final float POST_RETREAT_COOLDOWN = 2.0f;  // Cooldown before deciding to chase again
+    private float postRetreatCooldownTimer;
+
+    // Grouping
+    private final Vector2 rallyPoint;
+    private static final float GROUPING_TIMEOUT = 8.0f;         // Max time to wait for a group
+    private static final int GROUP_SIZE_THRESHOLD = 2;          // Min allies to trigger group attack
+    private static final float ALLY_SCAN_RADIUS = 300f;         // How far to look for allies for grouping
+    private static final float GROUPING_RALLY_RADIUS = 100f;    // How close to rally point before waiting
+
     @Override
     public float getRenderY() {
         return position.y;
     }
 
-    public Enemy(float x, float y, float speed){
+    public Enemy(float x, float y, float speed) {
         this.position = new Vector2(x, y);
-        this.direction = new Vector2();
-        this.speed = speed;
+        this.currentVelocity = new Vector2();
+        this.baseSpeed = speed;
+        this.currentSpeed = speed;
         this.size = 480f;
-        this.sizeBox = (float)(140*.3);
+        this.sizeBox = (float) (140 * .3);
         this.dead = false;
-        this.hitbox = new Rectangle(position.x-sizeBox/2, position.y-sizeBox/2, sizeBox, (float)(sizeBox*1.5));
+        this.hitbox = new Rectangle(position.x - sizeBox / 2, position.y - sizeBox / 2, sizeBox, (float) (sizeBox * 1.5));
 
         this.walkSheet = new Texture("textures/enemySheet.png");
         TextureRegion[][] walkTmp = TextureRegion.split(walkSheet,
             walkSheet.getWidth() / 8,
             walkSheet.getHeight());
-
         TextureRegion[] walkFrames = new TextureRegion[8];
-
         for (int i = 0; i < 8; i++) {
             walkFrames[i] = walkTmp[0][i];
         }
-        walkAnimation = new Animation<TextureRegion>(0.1f, walkFrames);
+        this.walkAnimation = new Animation<>(0.1f, walkFrames);
         this.animationTimer = 0f;
+
+        this.currentState = EnemyState.WANDERING;
+        this.stateTimer = MathUtils.random(minWanderTime, maxWanderTime);
+
+        this.wanderTargetPosition = new Vector2();
+        setNewWanderTarget();
+
+        this.weaveFactor = 0f;
+        this.postRetreatCooldownTimer = 0f;
+        this.rallyPoint = new Vector2();
     }
 
-    public void update(float delta, Vector2 playerPosition, ArrayList<Enemy> enemies){
+    public void update(float delta, Vector2 playerPosition, ArrayList<Enemy> otherEnemies, List<Object> worldObjects) {
+        if (dead) return;
         animationTimer += delta;
-        direction.set(playerPosition).sub(position);
+        stateTimer -= delta;
 
-        if (direction.len2() > 0.01f) {
-            direction.nor().scl(speed * delta);
-            position.add(direction);
+        float distanceToPlayer = position.dst(playerPosition);
+        Vector2 targetDirection = new Vector2();
+        this.currentSpeed = this.baseSpeed;
+
+        switch (currentState) {
+            case WANDERING:
+                currentSpeed = baseSpeed * 0.8f;
+                if (distanceToPlayer < detectionRadius) {
+                    if (MathUtils.randomBoolean(0.4f) && GROUP_SIZE_THRESHOLD > 0) {
+                        currentState = EnemyState.FORMING_GROUP;
+                        stateTimer = GROUPING_TIMEOUT;
+                        rallyPoint.set(position).lerp(playerPosition, 0.3f);
+                        System.out.println("Enemy " + this.hashCode() + " is FORMING_GROUP");
+                    } else {
+                        currentState = EnemyState.CHASING;
+                        System.out.println("Enemy " + this.hashCode() + " is CHASING (from WANDERING)");
+                    }
+                } else {
+                    if (position.dst(wanderTargetPosition) < 20f || stateTimer <= 0) {
+                        setNewWanderTarget();
+                        stateTimer = MathUtils.random(minWanderTime, maxWanderTime);
+                    }
+                    if (wanderTargetPosition.dst2(position) > 1f) {
+                        targetDirection.set(wanderTargetPosition).sub(position).nor();
+                    } else {
+                        targetDirection.set(0, 0);
+                    }
+                }
+                break;
+
+            case FORMING_GROUP:
+                currentSpeed = baseSpeed * 0.6f;
+                if (distanceToPlayer > detectionRadius * 1.2f) {
+                    currentState = EnemyState.WANDERING;
+                    setNewWanderTarget();
+                    stateTimer = MathUtils.random(minWanderTime, maxWanderTime);
+                    System.out.println("Enemy " + this.hashCode() + " stopped GROUPING (player far), back to WANDERING");
+                    break;
+                }
+                if (distanceToPlayer < aggroRadius) {
+                    currentState = EnemyState.CHASING;
+                    System.out.println("Enemy " + this.hashCode() + " abandoned GROUPING (player too close), now CHASING");
+                    break;
+                }
+
+
+                int alliesNearby = 0;
+                for (Enemy other : otherEnemies) {
+                    if (other == this || other.isDead()) continue;
+                    if (other.currentState == EnemyState.FORMING_GROUP || other.currentState == EnemyState.CHASING) {
+                        if (position.dst(other.position) < ALLY_SCAN_RADIUS) {
+                            alliesNearby++;
+                        }
+                    }
+                }
+
+                if (alliesNearby >= GROUP_SIZE_THRESHOLD) {
+                    currentState = EnemyState.CHASING;
+                    System.out.println("Enemy " + this.hashCode() + " attacking with group ("+alliesNearby+" allies), now CHASING");
+                } else if (stateTimer <= 0) {
+                    currentState = EnemyState.CHASING;
+                    System.out.println("Enemy " + this.hashCode() + " GROUPING timed out, now CHASING");
+                } else {
+                    if (position.dst2(rallyPoint) > GROUPING_RALLY_RADIUS * GROUPING_RALLY_RADIUS) {
+                        targetDirection.set(rallyPoint).sub(position).nor();
+                    } else {
+                        targetDirection.set(0, 0);
+                    }
+                }
+                break;
+
+            case CHASING:
+                currentSpeed = baseSpeed * 1.15f;
+                if (postRetreatCooldownTimer > 0) {
+                    postRetreatCooldownTimer -= delta;
+                    if (postRetreatCooldownTimer <=0 && distanceToPlayer > aggroRadius) {
+                        currentState = EnemyState.WANDERING;
+                        setNewWanderTarget();
+                        stateTimer = MathUtils.random(minWanderTime, maxWanderTime);
+                        System.out.println("Enemy " + this.hashCode() + " finished post-retreat cooldown, now WANDERING");
+                        break;
+                    }
+                    currentSpeed = baseSpeed * 0.9f;
+                }
+
+
+                if (distanceToPlayer < attackRange) {
+                    currentState = EnemyState.RETREATING;
+                    stateTimer = RETREAT_DURATION;
+                    postRetreatCooldownTimer = POST_RETREAT_COOLDOWN;
+                    System.out.println("Enemy " + this.hashCode() + " made attack pass, now RETREATING");
+                    break;
+                }
+                if (distanceToPlayer > deAggroRadius && distanceToPlayer > contactAggroRadius) {
+                    currentState = EnemyState.WANDERING;
+                    setNewWanderTarget();
+                    stateTimer = MathUtils.random(minWanderTime, maxWanderTime);
+                    System.out.println("Enemy " + this.hashCode() + " lost player, now WANDERING");
+                    break;
+                }
+
+                if (postRetreatCooldownTimer <= 0) {
+                    stateTimer -= delta;
+                    if (stateTimer <= 0) {
+                        weaveFactor = MathUtils.random(-maxWeaveFactor, maxWeaveFactor);
+                        stateTimer = MathUtils.random(0.5f * timeToNextWeave, 1.2f * timeToNextWeave);
+                    }
+                } else {
+                    weaveFactor = 0;
+                }
+
+                Vector2 directionToPlayer = new Vector2(playerPosition).sub(position);
+                if (directionToPlayer.len2() > 0.001f) {
+                    Vector2 perpendicularToPlayer = new Vector2(-directionToPlayer.y, directionToPlayer.x).nor();
+                    targetDirection.set(directionToPlayer.nor())
+                        .mulAdd(perpendicularToPlayer, weaveFactor * weaveInfluence)
+                        .nor();
+                    if (distanceToPlayer < contactAggroRadius * 1.5f && postRetreatCooldownTimer <= 0) {
+                        targetDirection.set(directionToPlayer.nor());
+                    }
+                } else {
+                    targetDirection.set(0,0);
+                }
+                break;
+
+            case RETREATING:
+                currentSpeed = baseSpeed * 1.0f;
+                targetDirection.set(position).sub(playerPosition).nor();
+
+                if (stateTimer <= 0 || distanceToPlayer > deAggroRadius * 0.8f) {
+                    currentState = EnemyState.CHASING;
+                    stateTimer = timeToNextWeave;
+                    System.out.println("Enemy " + this.hashCode() + " finished RETREATING, will re-evaluate (likely CHASING with cooldown)");
+                }
+                break;
         }
 
-        hitbox.setPosition(position.x-sizeBox/2, position.y-sizeBox/2);
+        applyMovement(delta, targetDirection, worldObjects, otherEnemies);
 
-        handleCollisionWithOthers(delta, enemies);
+        if (currentVelocity.len2() > 0.001f) {
+            if (currentVelocity.x > 0.01f) facingRight = true;
+            else if (currentVelocity.x < -0.01f) facingRight = false;
+        } else if (targetDirection.len2() > 0.001f) {
+            if (targetDirection.x > 0.01f) facingRight = true;
+            else if (targetDirection.x < -0.01f) facingRight = false;
+        }
+        hitbox.setCenter(position.x, position.y);
     }
 
-    private void handleCollisionWithOthers(float delta, ArrayList<Enemy> enemies){
-        for (Enemy other : enemies) {
-            if (other == this) continue;
+    private void setNewWanderTarget() {
+        float angle = MathUtils.random(360f);
+        float distance = MathUtils.random(wanderRadius * 0.3f, wanderRadius);
+        wanderTargetPosition.set(position.x + MathUtils.cosDeg(angle) * distance,
+            position.y + MathUtils.sinDeg(angle) * distance);
+    }
 
-            float distance = position.dst(other.position);
-            if (distance < 52f && distance > 0f) {
-                Vector2 repulsion = new Vector2(position).sub(other.position).nor().scl(180f * delta);
+    private void applyMovement(float delta, Vector2 desiredDirection, List<Object> worldObjects, ArrayList<Enemy> otherEnemies) {
+        if (desiredDirection.len2() > 0.001f) {
+            currentVelocity.set(desiredDirection).scl(currentSpeed * delta);
+        } else {
+            currentVelocity.set(0, 0);
+        }
+
+        Vector2 proposedPosition = new Vector2(position).add(currentVelocity);
+        Rectangle proposedHitbox = new Rectangle(hitbox);
+        proposedHitbox.setCenter(proposedPosition.x, proposedPosition.y);
+
+        boolean collisionWithObject = false;
+        if (worldObjects != null) {
+            for (Object obj : worldObjects) {
+                if (obj.getHitbox().overlaps(proposedHitbox)) {
+                    collisionWithObject = true;
+                    currentVelocity.set(0, 0);
+                    break;
+                }
+            }
+        }
+
+        if (!collisionWithObject) {
+            position.add(currentVelocity);
+        }
+        handleCollisionWithOthers(delta, otherEnemies);
+        hitbox.setCenter(position.x, position.y);
+    }
+
+    private void handleCollisionWithOthers(float delta, ArrayList<Enemy> enemies) {
+        for (Enemy other : enemies) {
+            if (other == this || other.isDead()) continue;
+            Rectangle currentUpdatedHitbox = this.getHitbox();
+            Rectangle otherUpdatedHitbox = other.getHitbox();
+            if (currentUpdatedHitbox.overlaps(otherUpdatedHitbox)) {
+                Vector2 repulsion = new Vector2(position).sub(other.position).nor().scl(baseSpeed * delta * 0.75f);
                 position.add(repulsion);
-                hitbox.setPosition(position.x-sizeBox/2, position.y-sizeBox/2);
+                hitbox.setCenter(position.x, position.y);
             }
         }
     }
 
-    public void render(SpriteBatch batch){
-
-        float playerWidth = size;
-        float playerHeight = size;
-
-        if (direction.x > 0) {
-            facingRight = true;
-        } else if (direction.x < 0) {
-            facingRight = false;
-        }
-
+    public void render(SpriteBatch batch) {
+        if (dead) return;
+        float visualWidth = size;
+        float visualHeight = size;
         TextureRegion currentFrame = walkAnimation.getKeyFrame(animationTimer, true);
-
         if (!facingRight && !currentFrame.isFlipX()) {
             currentFrame.flip(true, false);
         } else if (facingRight && currentFrame.isFlipX()) {
             currentFrame.flip(true, false);
         }
-
-        batch.draw(currentFrame, position.x - playerWidth / 2, position.y - playerHeight / 2, playerWidth, playerHeight);
-
+        batch.draw(currentFrame, position.x - visualWidth / 2, position.y - visualHeight / 2, visualWidth, visualHeight);
     }
 
-    public void renderBoxes(ShapeRenderer shape){
+    public void renderBoxes(ShapeRenderer shape) {
+        if (dead) return;
         shape.setColor(75, 60, 255, 1);
         shape.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
     }
 
     public boolean collidesWith(Bullet bullet) {
-        return Intersector.overlaps(bullet.getHitbox(), hitbox);
+        return !dead && Intersector.overlaps(bullet.getHitbox(), hitbox);
     }
 
     public boolean collidesWith(Player player) {
-        return hitbox.overlaps(player.getHitbox());
+        return !dead && hitbox.overlaps(player.getHitbox());
     }
 
     public void markDead() {
@@ -129,7 +349,14 @@ public class Enemy implements RenderableEntity {
         return position;
     }
 
-    public Rectangle getHitbox(){
+    public Rectangle getHitbox() {
         return hitbox;
+    }
+
+    public int getChasing() {
+        if (currentState == EnemyState.CHASING) return 1;
+        if (currentState == EnemyState.FORMING_GROUP) return 2;
+        if (currentState == EnemyState.RETREATING) return 3;
+        return 0;
     }
 }

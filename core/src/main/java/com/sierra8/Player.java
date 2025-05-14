@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.*;
+import com.badlogic.gdx.scenes.scene2d.ui.List;
 
 import java.util.ArrayList;
 
@@ -131,10 +132,10 @@ public class Player implements RenderableEntity {
         this.pistolShootListener = pistolShootListener;
     }
 
-    public void update(float delta, Camera camera){
+    public void update(float delta, Camera camera, ArrayList<Object> worldObjects){
 
         animationTimer += delta;
-        handleMovement(delta);
+        handleMovement(delta, worldObjects);
         handleRotation(camera);
         handleShooting(delta, camera);
         handleHitbox();
@@ -149,7 +150,7 @@ public class Player implements RenderableEntity {
         }
     }
 
-    private void handleMovement(float delta){
+    private void handleMovement(float delta, ArrayList<Object> worldObjects){
         direction.setZero();
         float currentSpeed;
 
@@ -168,7 +169,26 @@ public class Player implements RenderableEntity {
                 currentSpeed = speed;
             }
             direction.nor().scl(currentSpeed);
-            position.mulAdd(direction, delta);
+            // Proposed new position
+            Vector2 proposedPosition = new Vector2(position).mulAdd(direction, delta);
+            Rectangle proposedHitbox = new Rectangle(hitbox); // Create a copy for checking
+            // Calculate proposed hitbox position based on player's visual center and hitbox offsets
+            float proposedHitboxX = proposedPosition.x - sizeBox / 2 + (facingRight ? 6 : -6); // Adjust based on facing direction if necessary
+            float proposedHitboxY = proposedPosition.y - sizeBox / 2 - 18;
+            proposedHitbox.setPosition(proposedHitboxX, proposedHitboxY);
+
+
+            boolean collision = false;
+            for (Object obj : worldObjects) {
+                if (obj.getHitbox().overlaps(proposedHitbox)) {
+                    collision = true;
+                    break;
+                }
+            }
+
+            if (!collision) {
+                position.set(proposedPosition);
+            }
         }
 
         if(stamina < maxStamina && !Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || direction.len2() <= 0f){

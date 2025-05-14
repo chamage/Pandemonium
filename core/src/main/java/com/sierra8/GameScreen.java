@@ -68,7 +68,7 @@ public class GameScreen implements Screen {
         batch = new SpriteBatch();
 
         player = new Player(0, 0);
-        enemyManager = new EnemyManager(1f, 30, 316f);
+        enemyManager = new EnemyManager(.4f, 80, 316f);
         objectManager = new ObjectManager(.1f, 10);
 
         enemyManager.setPlayerDeathListener(() -> {
@@ -178,7 +178,7 @@ public class GameScreen implements Screen {
             renderables.add(object);
         }
         renderables.sort((a, b) -> Float.compare(b.getRenderY(), a.getRenderY()));
-        player.update(delta, camera);
+        player.update(delta, camera, objectManager.getObjects());
         enemyManager.update(delta, player, player.getBullets());
         objectManager.update(delta, player);
         camera.position.set(player.getPosition().x, player.getPosition().y, 0);
@@ -221,7 +221,7 @@ public class GameScreen implements Screen {
             + " Bullets: " + player.getBullets().size() + " Enemies: " + enemyManager.getEnemies().size() + " FPS: " + Gdx.graphics.getFramesPerSecond();
         SierraGame.fontSmaller.draw(batch, debug, camera.position.x - camera.viewportWidth / 2 + 5,
             camera.position.y + camera.viewportHeight / 2 - 10);
-        String killStreak = "Enemies killed: " + player.getEnemiesKilled();
+        String killStreak = "Enemies killed: " + player.getEnemiesKilled() + " Chasing: " + enemyManager.getStateCount("chasing");
         SierraGame.fontSmaller.draw(batch, killStreak, player.getPosition().x + 30, player.getPosition().y + 30);
 
         player.renderAbilities(batch);

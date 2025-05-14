@@ -4,16 +4,18 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ObjectManager {
-    private final ArrayList<Object> objects;
+    private static ArrayList<Object> objects;
     private final float spawnCooldown;
     private float spawnTimer;
     private final int maxObjects;
+    private final float minSpawn = 10f;
 
     public ObjectManager(float spawnCooldown, int maxObjects){
         objects = new ArrayList<>();
@@ -48,10 +50,34 @@ public class ObjectManager {
     private void spawnObject(Vector2 playerPosition){
         final float spawnDistanceX = Gdx.graphics.getWidth();
         final float spawnDistanceY = Gdx.graphics.getHeight();
-        float angle = MathUtils.random(360f);
-        float x = playerPosition.x + MathUtils.cosDeg(angle) * spawnDistanceX;
-        float y = playerPosition.y + MathUtils.sinDeg(angle) * spawnDistanceY;
-        objects.add(new Object(x, y));
+        float x, y;
+        boolean positionFound = false;
+        int maxAttempts = 10; // Limit attempts to find a non-overlapping position
+        Rectangle newObjectHitbox = new Rectangle();
+        // Assuming object size is 100f as defined in Object.java
+        float objectSize = 100f;
+        newObjectHitbox.setSize(objectSize);
+
+
+        for (int attempts = 0; attempts < maxAttempts && !positionFound; attempts++) {
+            float angle = MathUtils.random(360f);
+            x = playerPosition.x + MathUtils.cosDeg(angle) * spawnDistanceX;
+            y = playerPosition.y + MathUtils.sinDeg(angle) * spawnDistanceY;
+            newObjectHitbox.setCenter(x,y);
+
+            positionFound = true; // Assume position is valid until proven otherwise
+            for (Object existingObject : objects) {
+                // Add a small buffer (minSpawnAbstand) to the check
+                if (newObjectHitbox.overlaps(existingObject.getHitbox())) {
+                    positionFound = false;
+                    break;
+                }
+            }
+
+            if (positionFound) {
+                objects.add(new Object(x, y));
+            }
+        }
     }
 
     public void render(SpriteBatch batch){
@@ -66,7 +92,7 @@ public class ObjectManager {
         }
     }
 
-    public ArrayList<Object> getObjects(){
+    static public ArrayList<Object> getObjects(){
         return objects;
     }
 }
