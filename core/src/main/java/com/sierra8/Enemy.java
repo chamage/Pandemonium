@@ -38,7 +38,7 @@ public class Enemy implements RenderableEntity {
 
     private EnemyState currentState;
     private final Vector2 wanderTargetPosition;
-    private float stateTimer; // Generic timer for various states (wander, retreat, grouping timeout)
+    private float stateTimer;
 
     // Wandering
     private final float wanderRadius = 200f;
@@ -83,7 +83,8 @@ public class Enemy implements RenderableEntity {
         this.size = 480f;
         this.sizeBox = (float) (140 * .3);
         this.dead = false;
-        this.hitbox = new Rectangle(position.x - sizeBox / 2, position.y - sizeBox / 2, sizeBox, (float) (sizeBox * 1.5));
+        this.hitbox = new Rectangle(x - sizeBox / 2, y - sizeBox / 2, sizeBox, (float) (sizeBox * 1.5));
+
 
         this.walkSheet = new Texture("textures/enemySheet.png");
         TextureRegion[][] walkTmp = TextureRegion.split(walkSheet,
@@ -124,10 +125,8 @@ public class Enemy implements RenderableEntity {
                         currentState = EnemyState.FORMING_GROUP;
                         stateTimer = GROUPING_TIMEOUT;
                         rallyPoint.set(position).lerp(playerPosition, 0.3f);
-                        System.out.println("Enemy " + this.hashCode() + " is FORMING_GROUP");
                     } else {
                         currentState = EnemyState.CHASING;
-                        System.out.println("Enemy " + this.hashCode() + " is CHASING (from WANDERING)");
                     }
                 } else {
                     if (position.dst(wanderTargetPosition) < 20f || stateTimer <= 0) {
@@ -148,12 +147,10 @@ public class Enemy implements RenderableEntity {
                     currentState = EnemyState.WANDERING;
                     setNewWanderTarget();
                     stateTimer = MathUtils.random(minWanderTime, maxWanderTime);
-                    System.out.println("Enemy " + this.hashCode() + " stopped GROUPING (player far), back to WANDERING");
                     break;
                 }
                 if (distanceToPlayer < aggroRadius) {
                     currentState = EnemyState.CHASING;
-                    System.out.println("Enemy " + this.hashCode() + " abandoned GROUPING (player too close), now CHASING");
                     break;
                 }
 
@@ -170,10 +167,8 @@ public class Enemy implements RenderableEntity {
 
                 if (alliesNearby >= GROUP_SIZE_THRESHOLD) {
                     currentState = EnemyState.CHASING;
-                    System.out.println("Enemy " + this.hashCode() + " attacking with group ("+alliesNearby+" allies), now CHASING");
                 } else if (stateTimer <= 0) {
                     currentState = EnemyState.CHASING;
-                    System.out.println("Enemy " + this.hashCode() + " GROUPING timed out, now CHASING");
                 } else {
                     if (position.dst2(rallyPoint) > GROUPING_RALLY_RADIUS * GROUPING_RALLY_RADIUS) {
                         targetDirection.set(rallyPoint).sub(position).nor();
@@ -191,7 +186,6 @@ public class Enemy implements RenderableEntity {
                         currentState = EnemyState.WANDERING;
                         setNewWanderTarget();
                         stateTimer = MathUtils.random(minWanderTime, maxWanderTime);
-                        System.out.println("Enemy " + this.hashCode() + " finished post-retreat cooldown, now WANDERING");
                         break;
                     }
                     currentSpeed = baseSpeed * 0.9f;
@@ -202,17 +196,16 @@ public class Enemy implements RenderableEntity {
                     currentState = EnemyState.RETREATING;
                     stateTimer = RETREAT_DURATION;
                     postRetreatCooldownTimer = POST_RETREAT_COOLDOWN;
-                    System.out.println("Enemy " + this.hashCode() + " made attack pass, now RETREATING");
                     break;
                 }
                 if (distanceToPlayer > deAggroRadius && distanceToPlayer > contactAggroRadius) {
                     currentState = EnemyState.WANDERING;
                     setNewWanderTarget();
                     stateTimer = MathUtils.random(minWanderTime, maxWanderTime);
-                    System.out.println("Enemy " + this.hashCode() + " lost player, now WANDERING");
                     break;
                 }
 
+                // Weaving logic
                 if (postRetreatCooldownTimer <= 0) {
                     stateTimer -= delta;
                     if (stateTimer <= 0) {
@@ -220,7 +213,7 @@ public class Enemy implements RenderableEntity {
                         stateTimer = MathUtils.random(0.5f * timeToNextWeave, 1.2f * timeToNextWeave);
                     }
                 } else {
-                    weaveFactor = 0;
+                    weaveFactor = 0; // No weaving during cooldown
                 }
 
                 Vector2 directionToPlayer = new Vector2(playerPosition).sub(position);
@@ -244,21 +237,24 @@ public class Enemy implements RenderableEntity {
                 if (stateTimer <= 0 || distanceToPlayer > deAggroRadius * 0.8f) {
                     currentState = EnemyState.CHASING;
                     stateTimer = timeToNextWeave;
-                    System.out.println("Enemy " + this.hashCode() + " finished RETREATING, will re-evaluate (likely CHASING with cooldown)");
                 }
                 break;
         }
 
-        applyMovement(delta, targetDirection, worldObjects, otherEnemies);
+        if (targetDirection.len2() > 0.001f) {
+            currentVelocity.set(targetDirection).scl(currentSpeed * delta);
+        } else {
+            currentVelocity.set(0, 0);
+        }
 
-        if (currentVelocity.len2() > 0.001f) {
-            if (currentVelocity.x > 0.01f) facingRight = true;
-            else if (currentVelocity.x < -0.01f) facingRight = false;
+        applyMovement(delta, worldObjects, otherEnemies);
+        if(currentVelocity.len2() > 0.01f){
+            if (currentVelocity.x > 0.001f) facingRight = true;
+            else if (currentVelocity.x < -0.001f) facingRight = false;
         } else if (targetDirection.len2() > 0.001f) {
             if (targetDirection.x > 0.01f) facingRight = true;
             else if (targetDirection.x < -0.01f) facingRight = false;
         }
-        hitbox.setCenter(position.x, position.y);
     }
 
     private void setNewWanderTarget() {
@@ -268,44 +264,60 @@ public class Enemy implements RenderableEntity {
             position.y + MathUtils.sinDeg(angle) * distance);
     }
 
-    private void applyMovement(float delta, Vector2 desiredDirection, List<Object> worldObjects, ArrayList<Enemy> otherEnemies) {
-        if (desiredDirection.len2() > 0.001f) {
-            currentVelocity.set(desiredDirection).scl(currentSpeed * delta);
-        } else {
-            currentVelocity.set(0, 0);
-        }
+    private void applyMovement(float delta, List<Object> worldObjects, ArrayList<Enemy> otherEnemies) {
+        float moveX = currentVelocity.x;
+        float moveY = currentVelocity.y;
 
-        Vector2 proposedPosition = new Vector2(position).add(currentVelocity);
-        Rectangle proposedHitbox = new Rectangle(hitbox);
-        proposedHitbox.setCenter(proposedPosition.x, proposedPosition.y);
+        Rectangle tempHitbox = new Rectangle(hitbox);
 
-        boolean collisionWithObject = false;
+        tempHitbox.x += moveX;
+        tempHitbox.y = hitbox.y;
+        boolean collisionX = false;
         if (worldObjects != null) {
             for (Object obj : worldObjects) {
-                if (obj.getHitbox().overlaps(proposedHitbox)) {
-                    collisionWithObject = true;
-                    currentVelocity.set(0, 0);
+                if (obj.getHitbox().overlaps(tempHitbox)) {
+                    collisionX = true;
+                    moveX = 0;
                     break;
                 }
             }
         }
+        position.x += moveX;
+        hitbox.x += moveX;
 
-        if (!collisionWithObject) {
-            position.add(currentVelocity);
+        tempHitbox.x = hitbox.x;
+        tempHitbox.y = hitbox.y + moveY;
+
+        boolean collisionY = false;
+        if (worldObjects != null) {
+            for (Object obj : worldObjects) {
+                if (obj.getHitbox().overlaps(tempHitbox)) {
+                    collisionY = true;
+                    moveY = 0;
+                    break;
+                }
+            }
         }
-        handleCollisionWithOthers(delta, otherEnemies);
+        position.y += moveY;
+        hitbox.y += moveY;
         hitbox.setCenter(position.x, position.y);
+
+
+        handleCollisionWithOthers(delta, otherEnemies);
     }
+
 
     private void handleCollisionWithOthers(float delta, ArrayList<Enemy> enemies) {
         for (Enemy other : enemies) {
             if (other == this || other.isDead()) continue;
-            Rectangle currentUpdatedHitbox = this.getHitbox();
-            Rectangle otherUpdatedHitbox = other.getHitbox();
-            if (currentUpdatedHitbox.overlaps(otherUpdatedHitbox)) {
-                Vector2 repulsion = new Vector2(position).sub(other.position).nor().scl(baseSpeed * delta * 0.75f);
+            if (this.hitbox.overlaps(other.getHitbox())) {
+                Vector2 repulsion = new Vector2(position).sub(other.position).nor().scl(baseSpeed * delta * 0.5f);
                 position.add(repulsion);
                 hitbox.setCenter(position.x, position.y);
+
+                Vector2 otherRepulsion = new Vector2(other.position).sub(position).nor().scl(other.baseSpeed * delta * 0.5f);
+                other.position.add(otherRepulsion);
+                other.hitbox.setCenter(other.position.x, other.position.y);
             }
         }
     }
@@ -325,7 +337,7 @@ public class Enemy implements RenderableEntity {
 
     public void renderBoxes(ShapeRenderer shape) {
         if (dead) return;
-        shape.setColor(75, 60, 255, 1);
+        shape.setColor(75/255f, 60/255f, 255/255f, 1);
         shape.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
     }
 

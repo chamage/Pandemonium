@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ public class EnemyManager {
         this.delayTimer = delayTime;
     }
 
-    public void update(float delta, Player player, ArrayList<Bullet> bullets){
+    public void update(float delta, Player player, ArrayList<Bullet> bullets, ArrayList<Object> worldObjects){
         Vector2 playerPosition = player.getPosition();
         if (delayTargeting) {
             delayTimer -= delta;
@@ -59,7 +60,7 @@ public class EnemyManager {
         spawnTimer += delta;
 
         if (spawnTimer >= spawnCooldown && enemies.size() < maxEnemies) {
-            spawnEnemy(player.getPosition());
+            spawnEnemy(player.getPosition(), worldObjects);
             spawnTimer = 0;
         }
 
@@ -110,13 +111,44 @@ public class EnemyManager {
         }
     }
 
-    private void spawnEnemy(Vector2 playerPosition){
+    private void spawnEnemy(Vector2 playerPosition, ArrayList<Object> worldObjects){
         final float spawnDistanceX = Gdx.graphics.getWidth();
         final float spawnDistanceY = Gdx.graphics.getHeight();
-        float angle = MathUtils.random(360f);
-        float x = playerPosition.x + MathUtils.cosDeg(angle) * spawnDistanceX;
-        float y = playerPosition.y + MathUtils.sinDeg(angle) * spawnDistanceY;
-        enemies.add(new Enemy(x, y, enemySpeed));
+
+        float x = 0;
+        float y = 0;
+
+        boolean positionFound = false;
+        int maxAttempts = 20;
+
+        Rectangle proposedHitbox = new Rectangle(0,0, 80f, 80f);
+
+        for (int attempts = 0; attempts < maxAttempts; attempts++) {
+            float angle = MathUtils.random(360f);
+
+            x = playerPosition.x + MathUtils.cosDeg(angle) * spawnDistanceX;
+            y = playerPosition.y + MathUtils.sinDeg(angle) * spawnDistanceY;
+
+            proposedHitbox.setCenter(x, y);
+
+            positionFound = true;
+            if (worldObjects != null) {
+                for (Object obj : worldObjects) {
+                    if (obj.getHitbox().overlaps(proposedHitbox)) {
+                        positionFound = false;
+                        break;
+                    }
+                }
+            }
+
+            if (positionFound) {
+                break;
+            }
+        }
+
+        if (positionFound) {
+            enemies.add(new Enemy(x, y, enemySpeed));
+        }
     }
 
     public void render(SpriteBatch batch){

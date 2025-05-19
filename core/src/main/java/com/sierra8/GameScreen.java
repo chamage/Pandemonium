@@ -179,7 +179,7 @@ public class GameScreen implements Screen {
         }
         renderables.sort((a, b) -> Float.compare(b.getRenderY(), a.getRenderY()));
         player.update(delta, camera, objectManager.getObjects());
-        enemyManager.update(delta, player, player.getBullets());
+        enemyManager.update(delta, player, player.getBullets(), ObjectManager.getObjects());
         objectManager.update(delta, player);
         camera.position.set(player.getPosition().x, player.getPosition().y, 0);
         camera.update();
