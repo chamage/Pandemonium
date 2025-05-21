@@ -24,7 +24,7 @@ import java.util.Random;
 
 public class GameScreen implements Screen {
 
-    // Core game ref
+    // Core game reference
     private final SierraGame game;
 
     // Utilities
@@ -47,9 +47,11 @@ public class GameScreen implements Screen {
     private EnemyManager enemyManager;
     private ObjectManager objectManager;
 
+    // Pause components
     private Stage pauseStage;
     private Skin skin;
 
+    // Entities
     Array<RenderableEntity> renderables = new Array<>();
 
     public GameScreen(final SierraGame game){
@@ -59,6 +61,7 @@ public class GameScreen implements Screen {
         loadAssets();
     }
 
+    // Initialize all needed stuff
     private void initialize(){
 
         camera = new OrthographicCamera();
@@ -126,6 +129,7 @@ public class GameScreen implements Screen {
         table.add(quitButton).width(300).height(50).pad(10);
     }
 
+    // Load all textures and music
     private void loadAssets(){
         musicTracks = new Music[8];
         for (int i = 0; i < musicTracks.length; i++){
