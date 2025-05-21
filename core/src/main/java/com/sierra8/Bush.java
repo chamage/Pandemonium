@@ -15,7 +15,7 @@ public class Bush extends Object {
         super(x, y, 180f); // Visual size for a bush
         this.visualWidth = this.size;
         this.visualHeight = this.size * 0.5f; // Bush might be wider than tall, or adjust as needed
-        this.hitbox = new Rectangle(position.x, position.y, 0, 0); // No collision for bushes
+        this.hitbox = null; // No collision for bushes
         this.texture = loadTexture("textures/bush.png"); // Placeholder: you'll need a bush texture
         this.collidable = false;
     }
