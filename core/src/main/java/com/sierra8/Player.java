@@ -180,7 +180,7 @@ public class Player implements RenderableEntity {
 
             boolean collision = false;
             for (Object obj : worldObjects) {
-                if (obj.getHitbox().overlaps(proposedHitbox)) {
+                if (obj.isCollidable() && obj.getHitbox() != null && obj.getHitbox().overlaps(proposedHitbox)) {
                     collision = true;
                     break;
                 }

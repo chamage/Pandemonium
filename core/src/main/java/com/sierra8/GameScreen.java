@@ -72,7 +72,7 @@ public class GameScreen implements Screen {
 
         player = new Player(0, 0);
         enemyManager = new EnemyManager(.4f, 80, 316f);
-        objectManager = new ObjectManager(.1f, 10);
+        objectManager = new ObjectManager(25);
 
         enemyManager.setPlayerDeathListener(() -> {
             stopTrack();

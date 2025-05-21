@@ -302,7 +302,7 @@ public class Enemy implements RenderableEntity {
         tempHitbox.y = hitbox.y;
         if (worldObjects != null) {
             for (Object obj : worldObjects) {
-                if (obj.getHitbox().overlaps(tempHitbox)) {
+                if (obj.isCollidable() && obj.getHitbox() != null && obj.getHitbox().overlaps(tempHitbox)) {
                     moveX = 0;
                     break;
                 }
@@ -314,7 +314,7 @@ public class Enemy implements RenderableEntity {
         tempHitbox.y = (position.y - hitbox.height / 2) + moveY;
         if (worldObjects != null) {
             for (Object obj : worldObjects) {
-                if (obj.getHitbox().overlaps(tempHitbox)) {
+                if (obj.isCollidable() && obj.getHitbox() != null && obj.getHitbox().overlaps(tempHitbox)) {
                     moveY = 0;
                     break;
                 }

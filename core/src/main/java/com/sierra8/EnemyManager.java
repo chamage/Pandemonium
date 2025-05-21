@@ -134,7 +134,7 @@ public class EnemyManager {
             positionFound = true;
             if (worldObjects != null) {
                 for (Object obj : worldObjects) {
-                    if (obj.getHitbox().overlaps(proposedHitbox)) {
+                    if (obj.isCollidable() && obj.getHitbox() != null && obj.getHitbox().overlaps(proposedHitbox)) {
                         positionFound = false;
                         break;
                     }
