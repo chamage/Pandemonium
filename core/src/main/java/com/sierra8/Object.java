@@ -28,6 +28,56 @@ public abstract class Object implements RenderableEntity {
     @Override
     public abstract void render(SpriteBatch batch);
 
+    @Override
+    public void renderShadow(SpriteBatch batch, Texture shadowTexture) {
+        if (texture != null && shadowTexture != null) { // Only render shadow if object has a texture
+            float shadowScaleFactor = 1.4f; // How much of the object's base size the shadow should be
+            float shadowWidth = (this instanceof Bush) ? size * 1.1f : size * shadowScaleFactor; // Bushes might want wider shadows
+            shadowWidth = (this instanceof Tree) ? ((Tree)this).getTrunkWidth() * 3.5f : shadowWidth; // Trees shadow based on trunk
+            shadowWidth = (this instanceof Box) ? size * 1.1f : shadowWidth;
+
+
+            float shadowHeight = shadowWidth * 0.4f; // Keep shadow aspect ratio consistent
+
+            float shadowOffsetX = -shadowWidth / 2f;
+
+            batch.setColor(1, 1, 1, 0.6f); // Semi-transparent shadow
+            float shadowOffsetY;
+            if (this instanceof Tree) {
+                shadowOffsetY = -((Tree)this).getVisualHeight() / 2f - 10;
+                batch.draw(shadowTexture,
+                    position.x + shadowOffsetX + 5,
+                    position.y + shadowOffsetY,
+                    shadowWidth,
+                    shadowHeight);
+            } else if (this instanceof Box) {
+                shadowOffsetY = -size / 2f - 25;
+                batch.draw(shadowTexture,
+                    position.x + shadowOffsetX,
+                    position.y + shadowOffsetY,
+                    shadowWidth,
+                    shadowHeight);
+            } else if (this instanceof Bush) {
+                shadowOffsetY = -((Bush)this).getVisualHeight() / 2f - 40;
+                batch.draw(shadowTexture,
+                    position.x + shadowOffsetX,
+                    position.y + shadowOffsetY,
+                    shadowWidth,
+                    shadowHeight);
+            }
+            else {
+                shadowOffsetY = -size / 2f; // Default for other potential objects
+                batch.draw(shadowTexture,
+                    position.x + shadowOffsetX,
+                    position.y + shadowOffsetY,
+                    shadowWidth,
+                    shadowHeight);
+            }
+
+            batch.setColor(1, 1, 1, 1); // Reset color
+        }
+    }
+
     public abstract void renderBoxes(ShapeRenderer shape);
 
     public Vector2 getPosition() {

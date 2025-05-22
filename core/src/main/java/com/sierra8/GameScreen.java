@@ -41,6 +41,7 @@ public class GameScreen implements Screen {
     private Music[] musicTracks;
     private int currentTrackIndex = 0;
     private Texture grassTexture;
+    private Texture shadow;
 
     // Game components
     private Player player;
@@ -140,6 +141,8 @@ public class GameScreen implements Screen {
 
         grassTexture = new Texture(Gdx.files.internal("textures/grass.png"));
 
+        shadow = new Texture(Gdx.files.internal("textures/shadow.png"));
+
         playTrack();
     }
 
@@ -218,6 +221,7 @@ public class GameScreen implements Screen {
         batch.begin();
 
         for (RenderableEntity entity : renderables){
+            entity.renderShadow(batch, shadow);
             entity.render(batch);
         }
 

@@ -31,4 +31,12 @@ public class Bush extends Object {
     public void renderBoxes(ShapeRenderer shape) {
         // no hitbox to show
     }
+
+    public float getVisualHeight() {
+        return this.visualHeight;
+    }
+
+    public float getVisualWidth() {
+        return this.visualWidth;
+    }
 }

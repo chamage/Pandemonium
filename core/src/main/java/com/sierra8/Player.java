@@ -74,6 +74,24 @@ public class Player implements RenderableEntity {
         renderPlayer(batch);
     }
 
+    @Override
+    public void renderShadow(SpriteBatch batch, Texture shadowTexture) {
+        if (shadowTexture != null) {
+            float shadowWidth = size * 0.6f;
+            float shadowHeight = shadowWidth * 0.4f;
+            float shadowOffsetX = -shadowWidth / 2f + 6;
+            float shadowOffsetY = -size / 2f - shadowHeight * 0.01f;
+
+            batch.setColor(1, 1, 1, 0.6f);
+            batch.draw(shadowTexture,
+                position.x + shadowOffsetX,
+                position.y + shadowOffsetY,
+                shadowWidth,
+                shadowHeight);
+            batch.setColor(1, 1, 1, 1);
+        }
+    }
+
     public Player(float x, float y){
         this.position = new Vector2(x, y);
         this.speed = 300f;
@@ -292,12 +310,7 @@ public class Player implements RenderableEntity {
 
 
     private void handleHitbox(){
-        if (facingRight){
-            hitbox.setPosition(position.x-sizeBox/2+6, position.y-sizeBox/2-18);
-        }
-        else {
-            hitbox.setPosition(position.x-sizeBox/2-6, position.y-sizeBox/2-18);
-        }
+        hitbox.setPosition(position.x-sizeBox/2+6, position.y-sizeBox/2-18);
     }
 
     public void renderPlayer(SpriteBatch batch){
@@ -320,7 +333,12 @@ public class Player implements RenderableEntity {
             currentFrame.flip(true, false);
         }
 
-        batch.draw(currentFrame, position.x - playerWidth / 2, position.y - playerHeight / 2, playerWidth, playerHeight);
+        if (!facingRight){
+            batch.draw(currentFrame, position.x - playerWidth / 2 + 14, position.y - playerHeight / 2, playerWidth, playerHeight);
+        }
+        else {
+            batch.draw(currentFrame, position.x - playerWidth / 2, position.y - playerHeight / 2, playerWidth, playerHeight);
+        }
     }
 
     public void renderBullets(ShapeRenderer shape){

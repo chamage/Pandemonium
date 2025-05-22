@@ -44,4 +44,12 @@ public class Tree extends Object {
             shape.rect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
         }
     }
+
+    public float getVisualHeight() {
+        return this.visualHeight;
+    }
+
+    public float getTrunkWidth() {
+        return this.trunkWidth;
+    }
 }

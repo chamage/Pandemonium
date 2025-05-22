@@ -356,6 +356,26 @@ public class Enemy implements RenderableEntity {
         batch.draw(currentFrame, position.x - visualWidth / 2, position.y - visualHeight / 2, visualWidth, visualHeight);
     }
 
+    @Override
+    public void renderShadow(SpriteBatch batch, Texture shadowTexture) {
+        if (dead) return;
+        if (shadowTexture != null) {
+            float shadowWidth = sizeBox * 1.8f;
+            float shadowHeight = shadowWidth * 0.4f;
+            float shadowOffsetX = -shadowWidth / 2f;
+            float shadowOffsetY = -hitbox.height / 2f - shadowHeight * 0.4f;
+
+
+            batch.setColor(1, 1, 1, 0.6f);
+            batch.draw(shadowTexture,
+                position.x + shadowOffsetX,
+                position.y + shadowOffsetY,
+                shadowWidth,
+                shadowHeight);
+            batch.setColor(1, 1, 1, 1);
+        }
+    }
+
     public void renderBoxes(ShapeRenderer shape) {
         if (dead) return;
         shape.setColor(75/255f, 60/255f, 255/255f, 1);
