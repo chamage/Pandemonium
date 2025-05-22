@@ -39,8 +39,8 @@ public class MainMenuScreen implements Screen {
     private void initializeUI() {
         // Label setup
         Label.LabelStyle labelStyle = new Label.LabelStyle(SierraGame.fontMain, Color.WHITE);
-        Label label = new Label("SIERRA8", labelStyle);
-        label.setFontScale(4f);
+        Label label = new Label("Pandemonium", labelStyle);
+        label.setFontScale(3.5f);
 
         // Button setup
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));

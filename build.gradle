@@ -58,7 +58,7 @@ configure(subprojects) {
 
 subprojects {
   version = "$projectVersion"
-  ext.appName = 'SIERRA8'
+  ext.appName = 'Pandemonium'
   repositories {
     mavenCentral()
     maven { url 'https://s01.oss.sonatype.org' }
@@ -70,4 +70,4 @@ subprojects {
   }
 }
 
-eclipse.project.name = 'SIERRA8' + '-parent'
+eclipse.project.name = 'Pandemonium' + '-parent'
