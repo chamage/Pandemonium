@@ -26,7 +26,7 @@ public class Tree extends Object {
             trunkWidth,
             trunkHeight
         );
-        this.texture = loadTexture("textures/tree.png"); // Placeholder: you'll need a tree texture
+        this.texture = loadTexture("textures/tree.png");
     }
 
     @Override

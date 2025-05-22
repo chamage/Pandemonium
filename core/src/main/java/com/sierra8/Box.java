@@ -13,7 +13,7 @@ public class Box extends Object {
         super(x, y, 100f);
         this.sizeBox = this.size;
         this.hitbox = new Rectangle(position.x - sizeBox / 2, position.y - sizeBox / 2, sizeBox, sizeBox);
-        this.texture = loadTexture("textures/box.png"); //
+        this.texture = loadTexture("textures/box.png");
     }
 
     @Override
