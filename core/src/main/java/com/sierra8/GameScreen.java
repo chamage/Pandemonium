@@ -55,6 +55,10 @@ public class GameScreen implements Screen {
     // Entities
     Array<RenderableEntity> renderables = new Array<>();
 
+    // Teleport flash
+    private float flashDuration = 0.5f;
+    private float flashTimer = 0f;
+
     public GameScreen(final SierraGame game){
         this.game = game;
 
@@ -65,12 +69,15 @@ public class GameScreen implements Screen {
     // Initialize all needed stuff
     private void initialize(){
 
+        //camera initialization
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
+        //rendering utilities initialization
         shape = new ShapeRenderer();
         batch = new SpriteBatch();
 
+        //entities initialization
         player = new Player(0, 0);
         enemyManager = new EnemyManager(.4f, 80, 316f);
         objectManager = new ObjectManager(25);
@@ -85,8 +92,12 @@ public class GameScreen implements Screen {
 
         player.setPistolShootListener(() -> shootSound.play(game.soundVolume));
 
-        player.setTeleportListener(oldPos -> enemyManager.startTargetDelay(oldPos, .4f));
+        player.setTeleportListener(oldPos -> {
+            enemyManager.startTargetDelay(oldPos, .4f);
+            this.flashTimer = this.flashDuration;
+        });
 
+        //ui initialization
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle(skin.get(TextButton.TextButtonStyle.class));
         buttonStyle.font = SierraGame.fontMain;
@@ -174,6 +185,14 @@ public class GameScreen implements Screen {
     }
 
     private void update(float delta){
+
+        if (flashTimer > 0) {
+            flashTimer -= delta;
+            if (flashTimer < 0) {
+                flashTimer = 0;
+            }
+        }
+
         renderables.clear();
         renderables.add(player);
         for(Enemy enemy : enemyManager.getEnemies()){
@@ -225,12 +244,18 @@ public class GameScreen implements Screen {
             entity.render(batch);
         }
 
+        /* DEBUG STUFF
         String debug = "X: " + player.getPosition().x + " Y: " + player.getPosition().y
             + " Bullets: " + player.getBullets().size() + " Enemies: " + enemyManager.getEnemies().size() + " FPS: " + Gdx.graphics.getFramesPerSecond();
         SierraGame.fontSmaller.draw(batch, debug, camera.position.x - camera.viewportWidth / 2 + 5,
             camera.position.y + camera.viewportHeight / 2 - 10);
         String killStreak = "Enemies killed: " + player.getEnemiesKilled() + " Chasing: " + enemyManager.getStateCount("chasing");
         SierraGame.fontSmaller.draw(batch, killStreak, player.getPosition().x + 30, player.getPosition().y + 30);
+        */
+
+        String pointsScore = "Kills: " + player.getEnemiesKilled();
+        SierraGame.fontMain.draw(batch, pointsScore, camera.position.x - camera.viewportWidth / 2 + 5,
+            camera.position.y + camera.viewportHeight / 2 - 10);
 
         player.renderAbilities(batch);
         batch.end();
@@ -244,10 +269,18 @@ public class GameScreen implements Screen {
         player.renderManaBar(shape);
         player.renderAbilitiesUsed(shape);
 
+        if (flashTimer > 0) {
+            float alpha = (flashTimer / flashDuration) * 0.75f;
+            shape.setColor(56/255f, 56/255f, 99/255f, alpha);
+            shape.rect(camera.position.x - camera.viewportWidth / 2,
+                camera.position.y - camera.viewportHeight / 2,
+                camera.viewportWidth, camera.viewportHeight);
+        }
+
         /* DEBUG STUFF
         player.renderBoxes(shape);
         enemyManager.renderBoxes(shape);
-         */
+        */
 
         shape.end();
     }
@@ -269,12 +302,14 @@ public class GameScreen implements Screen {
     @Override
     public void pause() {
         paused = true;
+        //Gdx.input.setCursorCatched(false);
         Gdx.input.setInputProcessor(pauseStage);
     }
 
     @Override
     public void resume() {
         paused = false;
+        //Gdx.input.setCursorCatched(true);
         Gdx.input.setInputProcessor(null);
     }
 
